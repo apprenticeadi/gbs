@@ -12,9 +12,11 @@ from thewalrus.quantum import (
     )
 
 def decompose_cov(cov):
+    # Williamson decomposition.
+
     m = cov.shape[0] // 2
-    D, S = williamson(cov)
-    T = S @ S.T 
+    D, S = williamson(cov)  # Williamson decomposition, any positive definite real matrix V=SDS^T
+    T = S @ S.T
     DmI = D - np.eye(2*m)
     DmI[abs(DmI) < 1e-11] = 0. # remove slightly negative values
     sqrtW = S @ np.sqrt(DmI)
@@ -28,11 +30,20 @@ def mu_to_alpha(mu, hbar=2):
 
 def invert_permutation(p):
     s = np.empty_like(p, dtype=int)
+    # Returns array of uninitialized (arbitrary) data with the same shape and type as p.
+
     s[p] = np.arange(p.size, dtype=int)
+    # If I have an array s = np.array([5,3,7]), and p = np.array([0,2,1]), then s[p] returns s in order given by p, i.e.
+    # s[p] = np.array([5,7,3]).
+    # So what this line does is, s in order of p is labelled 0 to p.size.
+    # e.g. p = [1,3,4,2,0], then s[1]=0, s[3]=1, s[4]=2, s[2]=3, s[0]=4, so returns s= [4,0,3,1,2]
+
     return s
 
 def photon_means_order(mu, cov):
-    means = photon_number_mean_vector(mu, cov)
+    # Returns array of mode number in ascending order of mean photon number
+
+    means = photon_number_mean_vector(mu, cov)  # Calculate the mean photon number of each of the modes in a Gaussian state
     order = [x for _, x in sorted(zip(means, range(len(means))))]
     return np.asarray(order)
 
@@ -51,24 +62,40 @@ def click_means_order(cov):
     return np.asarray(order)
 
 def get_samples(mu, cov, cutoff=10, n_samples=10):
-    M = cov.shape[0] // 2
+    # Retrieves number of modes. since covariance matrix is 2M by 2M.
+    M = cov.shape[0] // 2 # integer division, quotient without remainder
 
     order = photon_means_order(mu, cov)
+    # Returns array of mode number in ascending order of mean photon number
+    # Order with which the chain rule algorithm progresses is arbitrary, so choose to go in order of increasing mean
+    # photon/click number
+    # This slightly reduces run time, since photons less likely to be detected in earlier modes, and size of loop
+    # hafnians in these stages generally reduced.
+
     order_inv = invert_permutation(order)
     oo = np.concatenate((order, order+M))
+    # e.g. order = [2,1,3,0], then oo = [2,1,3,0,2+4, 1+4, 3+4, 0+4]
 
+    # rearrange mu and cov in order of oo, i.e. in order of ascending mean photon number
     mu = mu[oo]
     cov = cov[np.ix_(oo, oo)]
 
     T, sqrtW = decompose_cov(cov)
-    chol_T_I = np.linalg.cholesky(T+np.eye(2*M))   
-    B = Amat(T)[:M,:M] 
+    # Williamson decomposition of mixed state as convex combination of pure states
+    # Continue algorithm with pure state given by covariance matrix T
+
+    chol_T_I = np.linalg.cholesky(T+np.eye(2*M))
+    B = Amat(T)[:M,:M]
+    # Amat returns the matrix of the Gaussian state whose hafnian gives the photon number
+    # probabilities.
     det_outcomes = np.arange(cutoff+1)
 
     for i in range(n_samples):
         det_pattern = np.zeros(M, dtype=int)
         pure_mu = mu + sqrtW @ np.random.normal(size=2*M)
-        pure_alpha = mu_to_alpha(pure_mu)
+        # Get the vector of means corresponding to the pure state. (After williamson decomposition we are dealing wiht
+        # pure states)
+        pure_alpha = mu_to_alpha(pure_mu) # Finding the mean displacement of each mode from mu.
         heterodyne_mu = pure_mu + chol_T_I @ np.random.normal(size=2*M)
         heterodyne_alpha = mu_to_alpha(heterodyne_mu)
        
