@@ -39,7 +39,7 @@ def _calc_loop_hafnian(A, D, edge_reps,
     if glynn and (oddloop is None):
         steps = ((edge_reps[0] + 2) // 2) * np.prod(edge_reps[1:] + 1)
     else:
-        steps = np.prod(edge_reps + 1)  # I understand this as the summation over z in the pape, or at least equivalent.
+        steps = np.prod(edge_reps + 1)  # This is the total number of terms in the summation over z in Eqn. S5
 
     # precompute binomial coefficients 
     max_binom = edge_reps.max() + 1
@@ -47,12 +47,15 @@ def _calc_loop_hafnian(A, D, edge_reps,
 
     H = np.complex128(0) #start running total for the hafnian
 
-    for j in numba.prange(steps):
+    for j in numba.prange(steps):  # This loop is the sum over all possible z vectors in Eqn. S5
 
         kept_edges = find_kept_edges(j, edge_reps)
+        # This function helps find the z vector used for the current iteration.
+        # A loop over j in steps would give all possible z vectors
+
         edge_sum = kept_edges.sum()
 
-        binom_prod = 1.
+        binom_prod = 1.  # This gives the prod of binomial factors in Eqn. S5.
         for i in range(n//2):
             binom_prod *= binoms[edge_reps[i], kept_edges[i]] # select kept_edges from edge_reps
         
@@ -60,6 +63,9 @@ def _calc_loop_hafnian(A, D, edge_reps,
             kept_edges = 2 * kept_edges - edge_reps
 
         AX_S, XD_S, D_S, oddVX_S = get_submatrices(kept_edges, A, D, oddV)
+        # We are allowed to do this because in Eqn. S6, Tr((A@Xz)^k) and Xz@(A@Xz)^k-1 only cares about the i and i+M
+        # row/col in A where z_i != 0
+
 
         E = eigvals(AX_S) # O(n^3) step
 

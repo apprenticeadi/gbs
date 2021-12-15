@@ -21,27 +21,27 @@ class MISChainBase(abc.ABC):
 
         self.cov = cov 
         M = cov.shape[0] // 2
-        self.M = M
+        self.M = M # number of modes
         assert cov.shape == (2 * M, 2 * M)
         self.N = N
 
         D, S = williamson(cov)
         T = S @ S.T 
-        self.T = T
+        self.T = T # covariance matrix of a pure state
 
         DmI = D - np.eye(2 * M)
         DmI[abs(DmI) < 1e-10] = 0. #remove slightly negative values
         W = S @ DmI @ S.T
         sqrtW = S @ np.sqrt(DmI)
 
-        A = Amat(T)
-        B = A[:M, :M].conj()
+        A = Amat(T)  # Returns the A matrix of the Gaussian state whose hafnian gives the photon number probabilities
+        B = A[:M, :M].conj() # T is covariance matrix for a pure state, so A can be written in block form with B.
 
-        Q = Qmat(T)
+        Q = Qmat(T)  # Returns the Q Husimi matrix of the Gaussian state.
         self.detQ = np.linalg.det(Q).real
 
         self.B = B 
-        self.abs2_B = abs(B)**2
+        self.abs2_B = abs(B)**2  # take mod squared of every element in B
         self.sqrtW = sqrtW
 
         if start_sampling:
@@ -68,7 +68,7 @@ class MISChainBase(abc.ABC):
         pass 
 
     def sample_R(self):
-        z = rng.normal(size=2*self.M)
+        z = rng.normal(size=2*self.M)  # draw from random normal distribution, default mean of distrib is 0 and std is 1.0
         R = self.sqrtW @ z 
         return R
 
@@ -78,7 +78,7 @@ class MISChainBase(abc.ABC):
         gamma = alpha - B @ alpha.conj()
         return B, gamma
         
-    def target_prob(self, pattern, R):  
+    def target_prob(self, pattern, R):  # I think this is calculating Eqn. 7
         alpha = R_to_alpha(R)
         B = self.B
         gamma = alpha - B @ alpha.conj()
@@ -99,9 +99,9 @@ class MISChainBase(abc.ABC):
         target_prob = self.target_prob(pattern, R)
         prob_calc_time = perf_counter() - t0
 
-        accept_prob = min(1, 
-            (self.prob_proposal_chain * target_prob) / 
-            (self.prob_target_chain * proposal_prob))
+        accept_prob = min(1,  # Follows Eqn. S13
+            (self.prob_proposal_chain * target_prob) / # self.prob_proposal_chain stores previous proposal prob
+            (self.prob_target_chain * proposal_prob))  # self.prob_target_chain stores previous target prob.
 
         rand = rng.random()
 
@@ -149,14 +149,14 @@ class MIS_IPS(MISChainBase):
 
     scale_factor = 1. 
 
-    def _sample_photons(self):
+    def _sample_photons(self):  # Question: what is going on in this function?
         R = self.sample_R()
         alpha = R_to_alpha(R)
 
         G = np.sqrt(self.scale_factor) * abs(alpha) ** 2
         C = self.scale_factor * self.abs2_B
 
-        sample = rng.poisson(G)
+        sample = rng.poisson(G)# sample from poisson, takes in float or array of floats of the expected number of events occurring in a fixed-time interval
         for j in range(self.M):
             sample[j] += 2 * rng.poisson(0.5 * C[j,j])
             for k in range(j+1, self.M):
@@ -167,17 +167,17 @@ class MIS_IPS(MISChainBase):
 
     def sample_proposal(self):
         sampleN = -1
-        while sampleN != self.N:
+        while sampleN != self.N:  # generate sample until sample photon number matches N
             pattern, R = self._sample_photons()
             sampleN = pattern.sum()
         return pattern, R
 
-    def proposal_prob(self, pattern, R):
+    def proposal_prob(self, pattern, R):  # This has to be calculating eqn. S12
         alpha = R_to_alpha(R)
         G = np.sqrt(self.scale_factor) * abs(alpha) ** 2 
         C = self.scale_factor * self.abs2_B 
-        prob = self.lhaf_func(C, G, pattern)
-        prefac = np.exp(-np.sum(G))
+        prob = self.lhaf_func(C, G, pattern)  # We want to calculate the lhaf of |Bn|^2 with diag. elements replaced by |alpha|^2, which is why we are specifying the D arg of loop_haf
+        prefac = np.exp(-np.sum(G))  # This doesn't seem to match the prefactor of Eqn. S12?
         prob *= prefac / np.prod(factorial(pattern))
         return prob
 

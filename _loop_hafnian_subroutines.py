@@ -151,6 +151,14 @@ def find_kept_edges(j, reps):
     Returns:
         array : number of repetitions kept for the current inclusion/exclusion step
     """
+
+    # Try
+    # test_reps = np.array([4, 2, 2, 1])
+    # test_steps = np.prod(test_reps+1)
+    # for test_id in numba.prange(test_steps):
+    #     print(find_kept_edges(test_id, test_reps))
+    # And it will become clear how this function works.
+
     num = j
     output = []
     bases = np.asarray(reps) + 1 # adds 1 to every element of reps
@@ -289,7 +297,7 @@ def get_AX_S(kept_edges, A):
 
     return AX_nonzero
 
-@numba.jit(nopython=True, cache=True)
+# @numba.jit(nopython=True, cache=True)
 def get_submatrices(kept_edges, A, D, oddV):
     """
     given the kept edges, return the appropriate scaled submatrices to compute f
@@ -307,13 +315,14 @@ def get_submatrices(kept_edges, A, D, oddV):
     """
 
     z = np.concatenate((kept_edges, kept_edges))
-    nonzero_rows = np.where(z != 0)[0]
+    nonzero_rows = np.where(z != 0)[0]  # the rows and columns to keep
     n_nonzero_edges = len(nonzero_rows) // 2
 
     kept_edges_nonzero = kept_edges[np.where(kept_edges != 0)]
 
     A_nonzero = nb_ix(A, nonzero_rows, nonzero_rows)
 
+    # perform matrix multiplication A @ X
     AX_nonzero = np.empty_like(A_nonzero, dtype=np.complex128)
     AX_nonzero[:,:n_nonzero_edges] = kept_edges_nonzero * A_nonzero[:,n_nonzero_edges:]
     AX_nonzero[:,n_nonzero_edges:] = kept_edges_nonzero * A_nonzero[:,:n_nonzero_edges]

@@ -38,7 +38,7 @@ cov = state.cov() # The covariance matrix describing the Gaussian state.
 #     print(sample)
 
 # MIS with PNRDs
-N = int(np.round(photon_number_mean_vector(mu, cov)).sum())
+N = int(np.round(photon_number_mean_vector(mu, cov)).sum()) # Calculate the mean photon number of each of the modes in a Gaussian state
 mis = MIS_IPS(cov, N)
 mis.run_chain(120)
 
