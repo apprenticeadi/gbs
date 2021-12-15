@@ -29,13 +29,13 @@ cov = state.cov() # The covariance matrix describing the Gaussian state.
 
 # chain rule sampling with PNRDs
 
-for sample in get_samples(mu, cov, n_samples=10):
-    print(sample)
-
-# chain rule sampling with threshold detectors
-
-for sample in get_samples_click(mu, cov, n_samples=10):
-    print(sample)
+# for sample in get_samples(mu, cov, n_samples=10):
+#     print(sample)
+#
+# # chain rule sampling with threshold detectors
+#
+# for sample in get_samples_click(mu, cov, n_samples=10):
+#     print(sample)
 
 # MIS with PNRDs
 N = int(np.round(photon_number_mean_vector(mu, cov)).sum())
@@ -47,12 +47,12 @@ thinning_rate = 10
 
 print(np.array(mis.chain_patterns[burn_in::thinning_rate]))
 
-# MIS with threshold detectors
-N = int(np.round(mean_clicks(cov)))
-mis = ClickMIS(cov, N)
-mis.run_chain(120)
-
-burn_in = 20
-thinning_rate = 10
-
-print(np.array(mis.chain_patterns[burn_in::thinning_rate]))
+# # MIS with threshold detectors
+# N = int(np.round(mean_clicks(cov)))
+# mis = ClickMIS(cov, N)
+# mis.run_chain(120)
+#
+# burn_in = 20
+# thinning_rate = 10
+#
+# print(np.array(mis.chain_patterns[burn_in::thinning_rate]))

@@ -16,7 +16,7 @@ def decompose_cov(cov):
 
     m = cov.shape[0] // 2
     D, S = williamson(cov)  # Williamson decomposition, any positive definite real matrix V=SDS^T
-    T = S @ S.T
+    T = S @ S.T # This code works with hbar=2
     DmI = D - np.eye(2*m)
     DmI[abs(DmI) < 1e-11] = 0. # remove slightly negative values
     sqrtW = S @ np.sqrt(DmI)
@@ -73,6 +73,7 @@ def get_samples(mu, cov, cutoff=10, n_samples=10):
     # hafnians in these stages generally reduced.
 
     order_inv = invert_permutation(order)
+
     oo = np.concatenate((order, order+M))
     # e.g. order = [2,1,3,0], then oo = [2,1,3,0,2+4, 1+4, 3+4, 0+4]
 
@@ -93,7 +94,7 @@ def get_samples(mu, cov, cutoff=10, n_samples=10):
     for i in range(n_samples):
         det_pattern = np.zeros(M, dtype=int)
         pure_mu = mu + sqrtW @ np.random.normal(size=2*M)
-        # Get the vector of means corresponding to the pure state. (After williamson decomposition we are dealing wiht
+        # Get the vector of means corresponding to the pure state. (After williamson decomposition we are dealing with
         # pure states)
         pure_alpha = mu_to_alpha(pure_mu) # Finding the mean displacement of each mode from mu.
         heterodyne_mu = pure_mu + chol_T_I @ np.random.normal(size=2*M)

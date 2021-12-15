@@ -11,7 +11,7 @@ from _loop_hafnian_subroutines import (
     eigvals
     )
 
-@numba.jit(nopython=True, parallel=True, cache=True)
+# @numba.jit(nopython=True, parallel=True, cache=True)
 def _calc_loop_hafnian(A, D, edge_reps,
         oddloop=None, oddV=None,
         glynn=True):
@@ -39,7 +39,7 @@ def _calc_loop_hafnian(A, D, edge_reps,
     if glynn and (oddloop is None):
         steps = ((edge_reps[0] + 2) // 2) * np.prod(edge_reps[1:] + 1)
     else:
-        steps = np.prod(edge_reps + 1)
+        steps = np.prod(edge_reps + 1)  # I understand this as the summation over z in the pape, or at least equivalent.
 
     # precompute binomial coefficients 
     max_binom = edge_reps.max() + 1
@@ -54,7 +54,7 @@ def _calc_loop_hafnian(A, D, edge_reps,
 
         binom_prod = 1.
         for i in range(n//2):
-            binom_prod *= binoms[edge_reps[i], kept_edges[i]]
+            binom_prod *= binoms[edge_reps[i], kept_edges[i]] # select kept_edges from edge_reps
         
         if glynn:
             kept_edges = 2 * kept_edges - edge_reps
@@ -136,9 +136,9 @@ def loop_hafnian(A, D=None, reps=None,
     H = _calc_loop_hafnian(Ax, Dx, edge_reps, oddloop, oddV, glynn)
     return H
 
-### compile code on some small instances ###
-A = np.ones((3,3))
-assert np.allclose(loop_hafnian(A), 4)
-A = np.ones((4,4))
-assert np.allclose(loop_hafnian(A), 10)
-############################################
+# ### compile code on some small instances ###
+# A = np.ones((3,3))
+# assert np.allclose(loop_hafnian(A), 4)
+# A = np.ones((4,4))
+# assert np.allclose(loop_hafnian(A), 10)
+# ############################################

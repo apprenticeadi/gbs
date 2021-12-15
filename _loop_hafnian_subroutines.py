@@ -71,9 +71,15 @@ def matched_reps(reps):
 
     # need to pair off the indices with high numbers of repetitions...
     x = range(n) # the starting set of indices
+    # x is vector m in the paper
+
     edgesA = []  # contains part A of each pair
     edgesB = [] # part B of each pair
+    # these two make the vector P in the paper
+
     edgereps = [] # number of repetitions of a pair
+    # vector eta in the paper
+
     reps, x = zip(*sorted(zip(reps, x), reverse=True)) # sort according to reps, in descending order
     reps = list(reps)
     x = list(x)
@@ -94,6 +100,7 @@ def matched_reps(reps):
         x = list(x)
         if len(reps) == 1 or reps[0] > reps[1] * 2:
             #if largest number of reps is more than double the 2nd largest, pair it with itself
+            # Discrepancy here with paper. Paper is greater or equal
             edgesA += [x[0]]
             edgesB += [x[0]]
             edgereps += [reps[0]//2]
@@ -127,6 +134,7 @@ def matched_reps(reps):
     # Reorder the indices (from x2 back to x) so that the paired indices get
     # connected by red edges
     x = np.asarray(edgesA + edgesB, dtype=np.int64) #reordered list of indices
+
     edgereps = np.asarray(edgereps, dtype=np.int64)
 
     return x, edgereps, oddmode
@@ -145,10 +153,10 @@ def find_kept_edges(j, reps):
     """
     num = j
     output = []
-    bases = np.asarray(reps) + 1
-    for base in bases[::-1]:
-        output.append(num % base)
-        num //= base 
+    bases = np.asarray(reps) + 1 # adds 1 to every element of reps
+    for base in bases[::-1]: # enumerate backwards
+        output.append(num % base) # % gives remainder
+        num //= base # integer divisino
     return np.array(output[::-1], dtype=reps.dtype)
 
 @numba.jit(nopython=True, cache=True)
