@@ -1,4 +1,6 @@
 # gbs [![DOI](https://zenodo.org/badge/385562452.svg)](https://zenodo.org/badge/latestdoi/385562452)
+This is a playaround branch. For a cleaner version go to main branch. 
+
 Implementation of algorithms reported in [The Boundary for Quantum Advantage in Gaussian Boson Sampling](https://arxiv.org/abs/2108.01622). 
 
 To download the repository and download the requirements from the command line, run:
