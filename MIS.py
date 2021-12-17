@@ -15,7 +15,7 @@ def R_to_alpha(R, hbar=2):
     return alpha
 
 class MISChainBase(abc.ABC):
-    def __init__(self, cov, N, lhaf_func=loop_hafnian, start_sampling=True):
+    def __init__(self, cov, N, lhaf_func=loop_hafnian, start_sampling=True):  # by initiating an instance we generate the first proposal sample.
 
         self.lhaf_func = lhaf_func
 
@@ -25,7 +25,7 @@ class MISChainBase(abc.ABC):
         assert cov.shape == (2 * M, 2 * M)
         self.N = N
 
-        D, S = williamson(cov)
+        D, S = williamson(cov)  # D is diagonal matrix,
         T = S @ S.T 
         self.T = T # covariance matrix of a pure state
 
@@ -47,12 +47,12 @@ class MISChainBase(abc.ABC):
         if start_sampling:
             pattern, R = self.sample_proposal()
 
-            self.prob_proposal_chain = self.proposal_prob(pattern, R)
-            self.prob_target_chain = self.target_prob(pattern, R)
+            self.prob_proposal_chain = self.proposal_prob(pattern, R)  # Eqn. S12
+            self.prob_target_chain = self.target_prob(pattern, R)  # Eqn. 7
             self.pattern_chain = pattern
 
-            self.patterns = [pattern]
-            self.chain_patterns = [pattern]
+            self.patterns = [pattern]  # all patterns generated
+            self.chain_patterns = [pattern]  # all patterns accepted
             self.proposal_probs = [self.prob_proposal_chain]
             self.target_probs = [self.prob_target_chain]
             self.chain_outcomes = []
@@ -90,7 +90,7 @@ class MISChainBase(abc.ABC):
 
     def update_chain(self, pattern=None, R=None):
         if pattern is None or R is None:
-            pattern, R = self.sample_proposal()
+            pattern, R = self.sample_proposal() # current pattern
             self.patterns.append(pattern)
             self.Rs.append(R)
         
@@ -105,9 +105,9 @@ class MISChainBase(abc.ABC):
 
         rand = rng.random()
 
-        if rand <= accept_prob:
+        if rand <= accept_prob:  # If accept_prob is 1 then this is always true, if accept_prob close to 1 then this is likely to be true, i.e. the new pattern is more likely to be accepted.
             self.chain_patterns.append(pattern)
-            self.prob_proposal_chain = proposal_prob
+            self.prob_proposal_chain = proposal_prob  # update proposal prob and target prob
             self.prob_target_chain = target_prob 
             self.pattern_chain = pattern
             self.chain_outcomes.append(1)
@@ -150,15 +150,20 @@ class MIS_IPS(MISChainBase):
     scale_factor = 1. 
 
     def _sample_photons(self):  # Question: what is going on in this function?
-        R = self.sample_R()
+        R = self.sample_R() # step 2 of supp mat section 3B
         alpha = R_to_alpha(R)
 
         G = np.sqrt(self.scale_factor) * abs(alpha) ** 2
         C = self.scale_factor * self.abs2_B
 
-        sample = rng.poisson(G)# sample from poisson, takes in float or array of floats of the expected number of events occurring in a fixed-time interval
+        # Independent Pairs and Singles distribution
+        # First sample the number of individual photons created in each mdoe by the displacement, using Poisson
+        # distributions with the mean of the j-th mode given by |alpha_j|^2
+        sample = rng.poisson(G)  # sample from poisson, takes in float or array of floats of the expected number of events occurring in a fixed-time interval
+        # Then sample the number of photon pairs created by squeezing between all mode pairs (j,k)
+        # from a Poisson distribution with mean given by |B_jk|^2
         for j in range(self.M):
-            sample[j] += 2 * rng.poisson(0.5 * C[j,j])
+            sample[j] += 2 * rng.poisson(0.5 * C[j,j])  # why 0.5 here?
             for k in range(j+1, self.M):
                 n = rng.poisson(C[j,k])
                 sample[j] += n 
