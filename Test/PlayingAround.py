@@ -31,12 +31,12 @@ cov = state.cov() # The covariance matrix describing the Gaussian state.
 
 # for sample in get_samples(mu, cov, n_samples=10):
 #     print(sample)
-#
-# # chain rule sampling with threshold detectors
-#
+
+# chain rule sampling with threshold detectors
+
 # for sample in get_samples_click(mu, cov, n_samples=10):
 #     print(sample)
-
+#
 # MIS with PNRDs
 N = int(np.round(photon_number_mean_vector(mu, cov)).sum()) # Calculate the mean photon number of each of the modes in a Gaussian state
 mis = MIS_IPS(cov, N)

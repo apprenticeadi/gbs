@@ -297,7 +297,7 @@ def get_AX_S(kept_edges, A):
 
     return AX_nonzero
 
-# @numba.jit(nopython=True, cache=True)
+@numba.jit(nopython=True, cache=True)
 def get_submatrices(kept_edges, A, D, oddV):
     """
     given the kept edges, return the appropriate scaled submatrices to compute f
@@ -392,7 +392,7 @@ def get_Dsubmatrices(kept_edges, D):
 def eigvals(M):
     return np.linalg.eigvals(M)
 
-# @numba.jit(nopython=True, cache=True)
+@numba.jit(nopython=True, cache=True)
 def calc_approx_steps(fixed_reps, N_cutoff):
     steps = int(np.prod(np.sqrt(fixed_reps))+1) * N_cutoff // 2
     return steps

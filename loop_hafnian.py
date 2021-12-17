@@ -11,7 +11,7 @@ from _loop_hafnian_subroutines import (
     eigvals
     )
 
-# @numba.jit(nopython=True, parallel=True, cache=True)
+@numba.jit(nopython=True, parallel=True, cache=True)
 def _calc_loop_hafnian(A, D, edge_reps,
         oddloop=None, oddV=None,
         glynn=True):
