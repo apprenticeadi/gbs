@@ -51,6 +51,8 @@ def _calc_loop_hafnian_batch_even(A, D, fixed_edge_reps,
         AX_S, XD_S, D_S, oddVX_S = get_submatrices(delta, A, D, oddV)
 
         E = eigvals(AX_S) # O(n^3) step
+        # Consider adding a counter here
+        # print('Hey there')
 
         f_even = f_loop(E, AX_S, XD_S, D_S, N_max)
         f_odd = f_loop_odd(E, AX_S, XD_S, D_S, N_max, oddloop, oddVX_S)
@@ -196,8 +198,8 @@ def loop_hafnian_batch(A, D, fixed_reps, N_cutoff, glynn=True):
         edges = add_batch_edges_even(fixed_edges)
         Ax = Anz[np.ix_(edges, edges)].astype(np.complex128)
         Dx = Dnz[edges].astype(np.complex128)
-        return _calc_loop_hafnian_batch_even(Ax, Dx, fixed_m_reps, batch_max, odd_cutoff,
-            glynn=glynn)
+        loop_hafnian_batch_even = _calc_loop_hafnian_batch_even(Ax, Dx, fixed_m_reps, batch_max, odd_cutoff, glynn=glynn)
+        return loop_hafnian_batch_even
     else:
         edges = add_batch_edges_odd(fixed_edges, oddmode)
         Ax = Anz[np.ix_(edges, edges)].astype(np.complex128)
@@ -207,14 +209,14 @@ def loop_hafnian_batch(A, D, fixed_reps, N_cutoff, glynn=True):
         return _calc_loop_hafnian_batch_odd(Ax, Dx, fixed_m_reps, batch_max, even_cutoff, oddmode,
             glynn=glynn)
 
-# compile and quick test upon importing
-A = np.ones((4,4))
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=False)
-assert np.allclose(batch, [10,26,76,232,764])
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=True)
-assert np.allclose(batch, [10,26,76,232,764])
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=False)
-assert np.allclose(batch, [4,10,26,76,232,764])
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=True)
-assert np.allclose(batch, [4,10,26,76,232,764])
-########################################
+# # compile and quick test upon importing
+# A = np.ones((4,4))
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=False)
+# assert np.allclose(batch, [10,26,76,232,764])
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=True)
+# assert np.allclose(batch, [10,26,76,232,764])
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=False)
+# assert np.allclose(batch, [4,10,26,76,232,764])
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=True)
+# assert np.allclose(batch, [4,10,26,76,232,764])
+# ########################################

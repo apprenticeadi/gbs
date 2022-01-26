@@ -105,6 +105,7 @@ def get_samples(mu, cov, cutoff=10, n_samples=10):
             m = mode + 1
             gamma -= heterodyne_alpha[mode] * B[:, mode]
             lhafs = loop_hafnian_batch(B[:m,:m], gamma[:m], det_pattern[:mode], cutoff)
+            # This should be the most costly step
             probs = (lhafs * lhafs.conj()).real / factorial(det_outcomes)
             norm_probs = probs.sum()
             probs /= norm_probs 
