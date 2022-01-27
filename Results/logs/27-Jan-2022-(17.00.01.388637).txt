@@ -1,0 +1,45 @@
+INFO 2022-01-27 17:00:01,404 Running chain rule sampling with PNRDs for [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19] modes. n_samples = 100
+INFO 2022-01-27 17:00:04,464 NumExpr defaulting to 8 threads.
+INFO 2022-01-27 17:00:04,796 Importing chain rule
+INFO 2022-01-27 17:00:04,827 
+INFO 2022-01-27 17:00:04,827 Compile and quick test upon importing
+INFO 2022-01-27 17:00:04,827 A=[[1. 1. 1. 1.]
+ [1. 1. 1. 1.]
+ [1. 1. 1. 1.]
+ [1. 1. 1. 1.]]
+INFO 2022-01-27 17:00:04,827 Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = False
+INFO 2022-01-27 17:00:05,146 Runtime for _calc_loop_hafnian_batch_even is 0.318683385848999
+INFO 2022-01-27 17:00:05,146 Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = True
+INFO 2022-01-27 17:00:05,146 Runtime for _calc_loop_hafnian_batch_even is 0.0
+INFO 2022-01-27 17:00:05,146 Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = False
+INFO 2022-01-27 17:00:05,329 Runtime for _calc_loop_hafnian_batch_odd is 0.18268108367919922
+INFO 2022-01-27 17:00:05,329 Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = True
+INFO 2022-01-27 17:00:05,329 Runtime for _calc_loop_hafnian_batch_odd is 0.0
+INFO 2022-01-27 17:00:05,720 
+INFO 2022-01-27 17:00:05,720 M=2 modes
+INFO 2022-01-27 17:00:05,722 U = [[0.12737791+0.94862934j 0.25618008-0.13508891j]
+ [0.21744593-0.19129692j 0.84111723+0.45677626j]]
+INFO 2022-01-27 17:00:05,722 Squeezing r = 0.3, coherent state alpha = 0.6
+INFO 2022-01-27 17:00:05,722 
+INFO 2022-01-27 17:00:05,722 Number of coherent states = 0
+INFO 2022-01-27 17:00:05,722 mu = [-0.  0.  0.  0.]
+INFO 2022-01-27 17:00:05,722 cov = [[ 1.71789433 -0.30963683 -0.10979388 -0.11797188]
+ [-0.30963683  0.8610763  -0.11797188 -0.43624223]
+ [-0.10979388 -0.11797188  0.65303611  0.30963683]
+ [-0.11797188 -0.43624223  0.30963683  1.50985414]]
+INFO 2022-01-27 17:00:05,732 
+INFO 2022-01-27 17:00:05,732 For 0th sample
+INFO 2022-01-27 17:00:05,732 For 0th mode
+INFO 2022-01-27 17:00:05,892 Runtime for _calc_loop_hafnian_batch_even is 0.1607959270477295
+INFO 2022-01-27 17:00:05,892 Run time = 0 for loop_hafnian_batch
+INFO 2022-01-27 17:00:05,892 lhafs = [1.        +0.j         0.05920751-0.09353865j 0.23837883+0.03916184j
+ 0.05602399-0.05960629j 0.16606282+0.05577978j 0.08162266-0.05905833j
+ 0.18758049+0.09852806j 0.15743511-0.07343668j 0.28769521+0.21491746j
+ 0.37348966-0.09403861j 0.54694547+0.56080524j]
+INFO 2022-01-27 17:00:05,892 For 1th mode
+INFO 2022-01-27 17:00:05,901 Runtime for _calc_loop_hafnian_batch_even is 0.0
+INFO 2022-01-27 17:00:05,901 Run time = 1 for loop_hafnian_batch
+INFO 2022-01-27 17:00:05,901 lhafs = [ 1.        +0.j          0.        +0.j         -0.14843014+0.19961069j
+  0.        +0.j         -0.05343876-0.17776946j  0.        +0.j
+  0.21708305+0.07859699j  0.        +0.j         -0.33537328+0.22166154j
+  0.        +0.j          0.04980141-0.89860813j]
