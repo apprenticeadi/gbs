@@ -1,5 +1,5 @@
-import numpy as np 
-import numba 
+import numpy as np
+import numba
 from _loop_hafnian_subroutines import (
     precompute_binoms,
     nb_ix,
@@ -11,6 +11,10 @@ from _loop_hafnian_subroutines import (
     get_submatrix_batch_odd0,
     eigvals
     )
+
+import time
+import logging
+from utils.log_utils import LogUtils
 
 @numba.jit(nopython=True, parallel=True, cache=True)
 def _calc_loop_hafnian_batch_even(A, D, fixed_edge_reps,
@@ -42,7 +46,7 @@ def _calc_loop_hafnian_batch_even(A, D, fixed_edge_reps,
         binom_prod = 1.
         for i in range(1, n//2):
             binom_prod *= binoms[edge_reps[i], kept_edges[i]]
-        
+
         if glynn:
             delta = 2 * kept_edges - edge_reps
         else:
@@ -51,8 +55,8 @@ def _calc_loop_hafnian_batch_even(A, D, fixed_edge_reps,
         AX_S, XD_S, D_S, oddVX_S = get_submatrices(delta, A, D, oddV)
 
         E = eigvals(AX_S) # O(n^3) step
-        # Consider adding a counter here
-        # print('Hey there')
+
+
 
         f_even = f_loop(E, AX_S, XD_S, D_S, N_max)
         f_odd = f_loop_odd(E, AX_S, XD_S, D_S, N_max, oddloop, oddVX_S)
@@ -72,7 +76,7 @@ def _calc_loop_hafnian_batch_even(A, D, fixed_edge_reps,
 
     if glynn:
         for j in range(H_batch.shape[0]):
-            x = N_fixed + j 
+            x = N_fixed + j
             H_batch[j] *= 0.5 ** (x // 2)
 
     return H_batch
@@ -85,7 +89,7 @@ def _calc_loop_hafnian_batch_odd(A, D, fixed_edge_reps,
     oddloop = D[0]
     oddV = A[0,:]
 
-    #when I added the extra edges, I place the edge which goes from the oddmode to 
+    #when I added the extra edges, I place the edge which goes from the oddmode to
     #to the current mode in the index 1 position of the array
     oddloop0 = D[1]
     oddV0 = A[1,:]
@@ -102,7 +106,7 @@ def _calc_loop_hafnian_batch_odd(A, D, fixed_edge_reps,
 
     H_batch = np.zeros(2*batch_max+even_cutoff+2, dtype=np.complex128)
     for j in numba.prange(steps):
-        
+
         Hnew = np.zeros(2*batch_max+even_cutoff+2, dtype=np.complex128)
 
         kept_edges = find_kept_edges(j, edge_reps)
@@ -111,7 +115,7 @@ def _calc_loop_hafnian_batch_odd(A, D, fixed_edge_reps,
         binom_prod = 1.
         for i in range(1, n//2):
             binom_prod *= binoms[edge_reps[i], kept_edges[i]]
-        
+
         if glynn:
             delta = 2 * kept_edges - edge_reps
         else:
@@ -125,7 +129,7 @@ def _calc_loop_hafnian_batch_odd(A, D, fixed_edge_reps,
             oddVX_S0 = get_submatrix_batch_odd0(delta, oddV0)
             plus_minus = (-1) ** (N_fixed // 2 - edges_sum)
             f = f_loop_odd(E, AX_S, XD_S, D_S, N_fixed, oddloop0, oddVX_S0)[N_fixed]
-            H_batch[0] += binom_prod * plus_minus * f 
+            H_batch[0] += binom_prod * plus_minus * f
 
         f_even = f_loop(E, AX_S, XD_S, D_S, N_max)
         f_odd = f_loop_odd(E, AX_S, XD_S, D_S, N_max, oddloop, oddVX_S)
@@ -138,14 +142,14 @@ def _calc_loop_hafnian_batch_odd(A, D, fixed_edge_reps,
 
             if N % 2 == 0:
                 Hnew[N_det] += n_det_binom_prod * plus_minus * f_even[N//2]
-            else: 
+            else:
                 Hnew[N_det] += n_det_binom_prod * plus_minus * f_odd[N]
-    
+
         H_batch += Hnew
 
     if glynn:
         for j in range(H_batch.shape[0]):
-            x = N_fixed + j 
+            x = N_fixed + j
             H_batch[j] *= 0.5 ** (x // 2)
 
     return H_batch
@@ -157,9 +161,9 @@ def add_batch_edges_even(fixed_edges):
     edges = np.zeros(n_edges+2, dtype=int)
     new_edge = max(fixed_edges) + 1
     edges[0] = new_edge
-    edges[1:n_edges//2+1] = fixed_edges[:n_edges//2] 
+    edges[1:n_edges//2+1] = fixed_edges[:n_edges//2]
     edges[n_edges//2+1] = new_edge
-    edges[n_edges//2+2:] = fixed_edges[n_edges//2:] 
+    edges[n_edges//2+2:] = fixed_edges[n_edges//2:]
     return edges
 
 def add_batch_edges_odd(fixed_edges, oddmode):
@@ -168,7 +172,7 @@ def add_batch_edges_odd(fixed_edges, oddmode):
     n_edges = fixed_edges.shape[0]
     edges = np.zeros(n_edges+4, dtype=int)
     new_edge = max(max(fixed_edges), oddmode) + 1
-    edges[0] = new_edge 
+    edges[0] = new_edge
     edges[1] = oddmode
     edges[2:n_edges//2+2] = fixed_edges[:n_edges//2]
     edges[n_edges//2+2] = new_edge
@@ -181,7 +185,7 @@ def loop_hafnian_batch(A, D, fixed_reps, N_cutoff, glynn=True):
     n = A.shape[0]
     assert A.shape[1] == n
     assert D.shape == (n,)
-    assert len(fixed_reps) == n - 1 
+    assert len(fixed_reps) == n - 1
 
     nz = np.nonzero(list(fixed_reps) + [1])[0]
     Anz = A[np.ix_(nz, nz)]
@@ -198,7 +202,14 @@ def loop_hafnian_batch(A, D, fixed_reps, N_cutoff, glynn=True):
         edges = add_batch_edges_even(fixed_edges)
         Ax = Anz[np.ix_(edges, edges)].astype(np.complex128)
         Dx = Dnz[edges].astype(np.complex128)
+
+        start_time = time.time()
         loop_hafnian_batch_even = _calc_loop_hafnian_batch_even(Ax, Dx, fixed_m_reps, batch_max, odd_cutoff, glynn=glynn)
+        end_time = time.time()
+
+        message = 'Runtime for _calc_loop_hafnian_batch_even is {}'.format(end_time-start_time)
+        logging.info(message)
+
         return loop_hafnian_batch_even
     else:
         edges = add_batch_edges_odd(fixed_edges, oddmode)
@@ -206,17 +217,46 @@ def loop_hafnian_batch(A, D, fixed_reps, N_cutoff, glynn=True):
         Dx = Dnz[edges].astype(np.complex128)
         batch_max = (N_cutoff-1) // 2
         even_cutoff = 1 - (N_cutoff % 2)
-        return _calc_loop_hafnian_batch_odd(Ax, Dx, fixed_m_reps, batch_max, even_cutoff, oddmode,
-            glynn=glynn)
 
-# # compile and quick test upon importing
-# A = np.ones((4,4))
-# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=False)
-# assert np.allclose(batch, [10,26,76,232,764])
-# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=True)
-# assert np.allclose(batch, [10,26,76,232,764])
-# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=False)
-# assert np.allclose(batch, [4,10,26,76,232,764])
-# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=True)
-# assert np.allclose(batch, [4,10,26,76,232,764])
-# ########################################
+        start_time = time.time()
+        loop_hafnian_batch_odd = _calc_loop_hafnian_batch_odd(Ax, Dx, fixed_m_reps, batch_max, even_cutoff, oddmode,
+            glynn=glynn)
+        end_time = time.time()
+
+        message = 'Runtime for _calc_loop_hafnian_batch_odd is {}'.format(end_time-start_time)
+        logging.info(message)
+
+
+        return loop_hafnian_batch_odd
+
+# compile and quick test upon importing
+
+message = 'Compile and quick test upon importing'
+logging.info('')
+logging.info(message)
+
+A = np.ones((4,4))
+message = 'A={}'.format(A)
+logging.info(message)
+
+
+message = 'Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = False'
+logging.info(message)
+batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=False)
+assert np.allclose(batch, [10,26,76,232,764])
+
+message = 'Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = True'
+logging.info(message)
+batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=True)
+assert np.allclose(batch, [10,26,76,232,764])
+
+message = 'Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = False'
+logging.info(message)
+batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=False)
+assert np.allclose(batch, [4,10,26,76,232,764])
+
+message = 'Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = True'
+logging.info(message)
+batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=True)
+assert np.allclose(batch, [4,10,26,76,232,764])
+########################################

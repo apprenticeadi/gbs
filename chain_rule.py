@@ -11,6 +11,10 @@ from thewalrus.quantum import (
     reduced_gaussian
     )
 
+import time
+import logging
+from utils.log_utils import LogUtils
+
 def decompose_cov(cov):
     # Williamson decomposition.
 
@@ -88,7 +92,7 @@ def get_samples(mu, cov, cutoff=10, n_samples=10):
     chol_T_I = np.linalg.cholesky(T+np.eye(2*M))
     B = Amat(T)[:M,:M]
     # Amat returns the matrix of the Gaussian state whose hafnian gives the photon number
-    # probabilities.
+    # probabilities. And because we're dealing with pure states now, A is block diagonal matrix and we just need to compute lhaf of B
     det_outcomes = np.arange(cutoff+1)
 
     for i in range(n_samples):
@@ -101,11 +105,27 @@ def get_samples(mu, cov, cutoff=10, n_samples=10):
         heterodyne_alpha = mu_to_alpha(heterodyne_mu)
        
         gamma = pure_alpha.conj() + B @ (heterodyne_alpha - pure_alpha)
+
+        message = 'For {}th sample'.format(i)
+        logging.info('')
+        logging.info(message)
+
         for mode in range(M):
             m = mode + 1
             gamma -= heterodyne_alpha[mode] * B[:, mode]
+
+            message = 'For {}th mode'.format(mode)
+            logging.info(message)
+
+            start_time = time.time()
             lhafs = loop_hafnian_batch(B[:m,:m], gamma[:m], det_pattern[:mode], cutoff)
             # This should be the most costly step
+            end_time = time.time()
+
+            message = 'Run time = {} for loop_hafnian_batch'.format(mode, end_time-start_time)
+            logging.info(message)
+            logging.info('lhafs = {}'.format(lhafs))
+
             probs = (lhafs * lhafs.conj()).real / factorial(det_outcomes)
             norm_probs = probs.sum()
             probs /= norm_probs 
