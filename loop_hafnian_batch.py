@@ -231,49 +231,49 @@ def loop_hafnian_batch(A, D, fixed_reps, N_cutoff, glynn=True):
 
 # compile and quick test upon importing
 
-message = 'Compile and quick test upon importing'
-logging.info('')
-logging.info(message)
-
-A = np.ones((4,4))
-message = 'A={}'.format(A)
-logging.info(message)
-
-
-message = 'Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = False'
-logging.info(message)
-start_time = time.time()
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=False)
-end_time = time.time()
-message = 'Run time = {}'.format(end_time-start_time)
-logging.info(message)
-assert np.allclose(batch, [10,26,76,232,764])
-
-
-message = 'Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = True'
-logging.info(message)
-start_time = time.time()
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=True)
-end_time = time.time()
-message = 'Run time = {}'.format(end_time-start_time)
-logging.info(message)
-assert np.allclose(batch, [10,26,76,232,764])
-
-message = 'Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = False'
-logging.info(message)
-start_time = time.time()
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=False)
-end_time = time.time()
-message = 'Run time = {}'.format(end_time-start_time)
-logging.info(message)
-assert np.allclose(batch, [4,10,26,76,232,764])
-
-message = 'Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = True'
-logging.info(message)
-start_time = time.time()
-batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=True)
-end_time = time.time()
-message = 'Run time = {}'.format(end_time-start_time)
-logging.info(message)
-assert np.allclose(batch, [4,10,26,76,232,764])
-########################################
+# message = 'Compile and quick test upon importing'
+# logging.info('')
+# logging.info(message)
+#
+# A = np.ones((4,4))
+# message = 'A={}'.format(A)
+# logging.info(message)
+#
+#
+# message = 'Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = False'
+# logging.info(message)
+# start_time = time.time()
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=False)
+# end_time = time.time()
+# message = 'Run time = {}'.format(end_time-start_time)
+# logging.info(message)
+# assert np.allclose(batch, [10,26,76,232,764])
+#
+#
+# message = 'Running loop_hafnian_batch for fixed reps = [1,1,2], N_cutoff=4, and glynn = True'
+# logging.info(message)
+# start_time = time.time()
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,2], 4, glynn=True)
+# end_time = time.time()
+# message = 'Run time = {}'.format(end_time-start_time)
+# logging.info(message)
+# assert np.allclose(batch, [10,26,76,232,764])
+#
+# message = 'Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = False'
+# logging.info(message)
+# start_time = time.time()
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=False)
+# end_time = time.time()
+# message = 'Run time = {}'.format(end_time-start_time)
+# logging.info(message)
+# assert np.allclose(batch, [4,10,26,76,232,764])
+#
+# message = 'Running loop_hafnian_batch for fixed reps = [1,1,1], N_cutoff=5, and glynn = True'
+# logging.info(message)
+# start_time = time.time()
+# batch = loop_hafnian_batch(A, A.diagonal(), [1,1,1], 5, glynn=True)
+# end_time = time.time()
+# message = 'Run time = {}'.format(end_time-start_time)
+# logging.info(message)
+# assert np.allclose(batch, [4,10,26,76,232,764])
+# ########################################
