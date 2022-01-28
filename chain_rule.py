@@ -106,25 +106,25 @@ def get_samples(mu, cov, cutoff=10, n_samples=10):
        
         gamma = pure_alpha.conj() + B @ (heterodyne_alpha - pure_alpha)
 
-        message = 'For {}th sample'.format(i)
-        logging.info('')
-        logging.info(message)
+        # message = 'For {}th sample'.format(i)
+        # logging.info('')
+        # logging.info(message)
 
         for mode in range(M):
             m = mode + 1
             gamma -= heterodyne_alpha[mode] * B[:, mode]
 
-            message = 'For {}th mode'.format(mode)
-            logging.info(message)
+            # message = 'For {}th mode'.format(mode)
+            # logging.info(message)
 
-            start_time = time.time()
+            # start_time = time.time()
             lhafs = loop_hafnian_batch(B[:m,:m], gamma[:m], det_pattern[:mode], cutoff)
             # This should be the most costly step
-            end_time = time.time()
+            # end_time = time.time()
 
-            message = 'Run time = {} for loop_hafnian_batch'.format(mode, end_time-start_time)
-            logging.info(message)
-            logging.info('lhafs = {}'.format(lhafs))
+            # message = 'Run time = {} for loop_hafnian_batch'.format(mode, end_time-start_time)
+            # logging.info(message)
+            # logging.info('lhafs = {}'.format(lhafs))
 
             probs = (lhafs * lhafs.conj()).real / factorial(det_outcomes)
             norm_probs = probs.sum()
