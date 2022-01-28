@@ -1,36 +1,57 @@
 import logging
 import time
-from utils.log_utils import LogUtils
 import datetime
+import numpy as np
+import pandas as pd
+from scipy.stats import unitary_group
 
-n_samples = 100
+import strawberryfields as sf
+import strawberryfields.ops as ops
 
-M_list = list(range(2, 9))  # M must be integer, not numpy.int32, otherwise will cause problems with strawberry fields
+from utils.log_utils import LogUtils
+from utils.run_utils import CircuitUtils, BenchmarkUtils
+
 
 # <<<<<<<<<<<< Logging >>>>>>>>>>>>>>>>>
 date_stamp = datetime.datetime.now().strftime("%d-%m-%Y")
+time_stamp = datetime.datetime.now().strftime("%d-%m-%Y(%H:%M:%S.%f)")
 LogUtils.log_config()
+
+# <<<<<<<<<<<< Parameters >>>>>>>>>>>>>>>>>
+n_samples = 4096
+M_list = list(range(2, 5))  # M must be integer, not numpy.int32, otherwise will cause problems with strawberry fields
+r = 1.55 # squeezing magnitude
+p = 0 # squeezing angle
+alpha = 0.6  # coherent state
+phi = 0 # coherent state phase
+file_name_header = r'..\Results\varying_coh_{}_samples'.format(n_samples)
+
 message = 'Running chain rule sampling with PNRDs for {} modes. n_samples = {}'.format(M_list, n_samples)
 logging.info(message)
 
-import numpy as np
-from scipy.stats import unitary_group
-import strawberryfields as sf
-import strawberryfields.ops as ops
-import pandas as pd
+message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha)
+logging.info(message)
 
 # <<<<<<<<<<<< Importing chain rule  >>>>>>>>>>>>>>>>>
 message = 'Importing chain rule'
 logging.info(message)
-
 from chain_rule import get_samples, get_samples_click
+logging.info('')
 
-# <<<<<<<<<<<< Parameters >>>>>>>>>>>>>>>>>
-r = 1.55 # squeezing magnitude
-alpha = 0.6  # coherent state
 
-message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha)
-logging.info(message)
+# <<<<<<<<<<<< Test run with two squeezed modes  >>>>>>>>>>>>>>>>>
+test_n_samples = 20
+U = unitary_group.rvs(2)  # generates random unitary group with dimension M
+
+logging.info('Test run with two squeezed modes with {} samples'.format(test_n_samples))
+logging.info('U={}'.format(U))
+
+mu_test, cov_test = CircuitUtils.hybrid_gaussian_circuit(M=2, num_coh=0, r=r, alpha=alpha, U=U, p=p, phi=phi)
+logging.info('mu_test = {}, cov_test = {}'.format(mu, cov))
+
+test_file_name = file_name_header + r'\test_M=2_coh=0_r={}_alpha={}_{}.csv'.format(r, alpha, date_stamp)
+BenchmarkUtils.chainrule_pnrds(mu=mu_test, cov=cov_test, n_samples=test_n_samples, file_name=test_file_name)
+
 
 
 for M in M_list:
@@ -46,30 +67,14 @@ for M in M_list:
     logging.info(message)
 
     # <<<<<<<<<<<< Running chain rule for different number of coherent states >>>>>>>>>>>>>>>>>
-    coh_ind_ls = [0, 1, int(M/2)+1, M - 1, M]
+    coh_ind_ls = [0, 1, int(M/2+0.5), M - 1, M]
     for coh_ind in coh_ind_ls:
 
         message = 'Number of coherent states = {}'.format(coh_ind)
         logging.info('')
         logging.info(message)
 
-        eng = sf.Engine(backend='gaussian')
-        prog = sf.Program(M)
-        with prog.context as q:
-            for i in range(0, coh_ind):
-                ops.Coherent(r=alpha) | q[i]
-
-            for i in range(coh_ind, M):
-                ops.Squeezed(r=r) | q[i]
-
-            ops.Interferometer(U) | q
-
-        state = eng.run(
-            prog).state  # I think this can be understood as the quantum state after computation. With a gaussian backend we get a gaussian state.
-
-        # get wigner function displacement and covariance
-        mu = state.means()  # The vector of means describing the Gaussian state.
-        cov = state.cov()  # The covariance matrix describing the Gaussian state.
+        mu, cov = CircuitUtils.hybrid_gaussian_circuit(M=M, num_coh=coh_ind, r=r, alpha=alpha, U=U, p=p, phi=phi)
 
         message = 'mu = {}'.format(mu)
         logging.info(message)
