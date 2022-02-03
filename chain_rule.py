@@ -90,7 +90,7 @@ def get_samples(mu, cov, cutoff=10, n_samples=10):
     # Continue algorithm with pure state given by covariance matrix T
 
     chol_T_I = np.linalg.cholesky(T+np.eye(2*M))
-    B = Amat(T)[:M,:M]
+    B = Amat(T)[:M,:M]  #Amat wants xp Wigner covariance matrix
     # Amat returns the matrix of the Gaussian state whose hafnian gives the photon number
     # probabilities. And because we're dealing with pure states now, A is block diagonal matrix and we just need to compute lhaf of B
     det_outcomes = np.arange(cutoff+1)

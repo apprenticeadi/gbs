@@ -2,7 +2,7 @@ import strawberryfields as sf
 import strawberryfields.ops as ops
 import numpy as np
 
-M = 4
+M = 2
 alpha = 2
 r = 1.55
 coh_ind = 2
@@ -34,7 +34,7 @@ def get_gauss(M, gate_name, r):
 
 
 mu_1, cov_1 = get_gauss(M, 'Sgate', alpha)
-mu_2, cov_2 = get_gauss(M, 'Squeezed', alpha)
+mu_2, cov_2 = get_gauss(M, 'Dgate', alpha)
 
 print('mu matrix')
 print(mu_1)

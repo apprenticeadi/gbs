@@ -5,14 +5,16 @@ import datetime
 
 sub_sample_size = 100
 repeat_num = 40
-plot_num = 1
+plot_num = repeat_num
 r = 1.55
-alpha = 2
-M_start = 2
+alpha = 2.25
+M_start = 8
 M_end = 9
 M_list = list(range(M_start, M_end + 1))
 num_M = len(M_list)
-date_stamp = '28-01-2022'
+date_stamp = '01-02-2022'
+date_stamp_1 = '28-01-2022'
+
 
 file_head = r'..\Results\varying_coh_{}x{}_samples'.format(sub_sample_size, repeat_num)
 
@@ -44,12 +46,12 @@ for M in range(M_start, M_end + 1):
         time_sum = 0
 
         for i in range(plot_num):
-            file_body = r'\No_{}_{}.csv'.format(i, date_stamp)
+            file_body = r'\No_{}'.format(i)
 
-            results_df = pd.read_csv(file_head +
-                                     file_head_2 +
-                                     file_body
-                                     )
+            try:
+                results_df = pd.read_csv(file_head + file_head_2 + r'\No_{}_{}.csv'.format(i, date_stamp))
+            except FileNotFoundError:
+                results_df = pd.read_csv(file_head + file_head_2 + r'\No_{}_{}.csv'.format(i, date_stamp_1))
 
             time_sum += sum(results_df['time'])
 
@@ -63,12 +65,12 @@ for coh_num_key in coh_num_dict.keys():
 
 plt.xlabel('Number of modes M')
 plt.ylabel('Time(s)')
-plt.title('Run time for {}x{} samples, r={}, alpha={}'.format(sub_sample_size, repeat_num, r, alpha))
+plt.title('Run time for {}x{} samples, r={}, alpha={}'.format(sub_sample_size, plot_num, r, alpha))
 plt.legend()
 plt.xticks(range(M_start, M_end + 1))
 plt.show()
 
-plot_filename = r'..\Plots\var_coh_M={}-{}_r={}_alpha={}_{}x{}_{}.png'.format(M_start, M_end, r, alpha,
+plot_filename = r'..\Plots\var_coh_M={}-{}_r={}_alpha={}_{}x{}_{}.pdf'.format(M_start, M_end, r, alpha,
                                                                               sub_sample_size, plot_num,
                                                                               date_stamp)
 plt.savefig(plot_filename)

@@ -1,5 +1,6 @@
 import logging
 from utils.log_utils import LogUtils
+
 # <<<<<<<<<<<< Logging >>>>>>>>>>>>>>>>>
 LogUtils.log_config()
 
@@ -15,17 +16,16 @@ import strawberryfields.ops as ops
 
 from utils.run_utils import CircuitUtils, BenchmarkUtils
 
-
 date_stamp = datetime.datetime.now().strftime("%d-%m-%Y")
 time_stamp = datetime.datetime.now().strftime("%d-%m-%Y(%H-%M-%S.%f)")
 
 # <<<<<<<<<<<< Parameters >>>>>>>>>>>>>>>>>
 n_samples = 100
 n_repeat = 40
-M_list = list(range(2,10)) # M must be integer, not numpy.int32, otherwise will cause problems with strawberry fields
+M_list = list(range(8, 10))  # M must be integer, not numpy.int32, otherwise will cause problems with strawberry fields
 r = 1.55  # squeezing magnitude
 p = 0  # squeezing angle
-alpha = 2 # coherent state
+alpha = 2.25  # coherent state
 phi = 0  # coherent state phase
 
 message = 'Running chain rule sampling with PNRDs for {} modes. n_samples = {}'.format(M_list, n_samples)
@@ -39,8 +39,6 @@ file_name_header = r'..\Results\varying_coh_{}x{}_samples'.format(n_samples, n_r
 if is_this_test:
     file_name_header += r'\test'
     logging.info('This is a test run')
-
-
 
 # # <<<<<<<<<<<< Importing chain rule  >>>>>>>>>>>>>>>>>
 # message = 'Importing chain rule'
@@ -102,4 +100,3 @@ for M in M_list:
             os.makedirs(os.path.dirname(file_name), exist_ok=True)
 
             BenchmarkUtils.chainrule_pnrds(mu=mu, cov=cov, n_samples=n_samples, file_name=file_name)
-
