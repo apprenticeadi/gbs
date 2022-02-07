@@ -4,7 +4,7 @@ import scipy.special
 from loop_hafnian import _calc_loop_hafnian
 from _walrus_functions import complex_to_real_displacements,reduction,Amat,_prefactor
 import itertools
-#from strawberryfields_random import random_covariance 
+from strawberryfields.utils.random_numbers_matrices import random_covariance
 
 def loop_hafnian_approx(A,D,approx=2,glynn=False):
     """
@@ -97,11 +97,11 @@ def probability_approx(mu, cov, n, approx=2, hbar=2):
     #prob/= np.prod(scipy.special.factorial(n)) #divide by factoials of n
     return prob.real
 
-#M=4
-#mu=np.random.rand(2*M)
-#cov=random_covariance(M)
-#A=Amat(cov)
-#alpha=complex_to_real_displacements(mu)
-#gamma = alpha.conj() - A @ alpha
-#haf=loop_hafnian_approx(A, gamma, approx=2*M)
-#P=probability_approx(mu,cov,[1]*M,approx=2*M)
+# M=4
+# mu=np.random.rand(2*M)
+# cov=random_covariance(M)
+# A=Amat(cov)
+# alpha=complex_to_real_displacements(mu)
+# gamma = alpha.conj() - A @ alpha
+# haf=loop_hafnian_approx(A, gamma, approx=2*M)
+# P=probability_approx(mu,cov,    [1]*M,approx=2*M)
