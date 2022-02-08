@@ -1,7 +1,7 @@
 import numpy as np
-# import numba
+import scipy
 from loop_hafnian import _calc_loop_hafnian
-from _walrus_functions import complex_to_real_displacements, reduction, Amat
+from _walrus_functions import complex_to_real_displacements, reduction, Amat, _prefactor
 import itertools
 
 
@@ -69,6 +69,10 @@ def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
         return H
 
 def loop_hafnian_approx(A, gamma, n, approx=2):
+
+    # The main confusion here is, in k-approx script, no decomposition of A into B are made. This is not true in chain
+    # rule.  For now let's use a dirty method. Need to change this later!
+
     n2 = n + n
     A_n = reduction(A, n2)  # A reduced according to photon numbers n  # i.e. repeat rows/col n_i times to make A_n
     gamma_n = reduction(gamma, n2)  # gamma reduced according to photon numbers n
@@ -76,6 +80,33 @@ def loop_hafnian_approx(A, gamma, n, approx=2):
     assert len(gamma_n) == np.sum(n2)
 
     return calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
+
+    # Above is my original method. I believe this would work if n is integer list of length N, A is 2N*2N.
+    # Below is a dirty version I tried to use, but failed more miserably...
+
+    # assert len(gamma) == A.shape[0]
+    # assert A.shape[0] == len(n) or A.shape[0] == 2*len(n)
+    #
+    # if len(n) == A.shape[0]:
+    #     A = direct_sum(A, A)
+    #     gamma = np.concatenate([gamma, gamma])
+    #
+    # n2 = np.concatenate([n,n])
+    # A_n = reduction(A, n2)  # A reduced according to photon numbers n  # i.e. repeat rows/col n_i times to make A_n
+    # gamma_n = reduction(gamma, n2)  # gamma reduced according to photon numbers n
+    #
+    # assert len(gamma_n) == np.sum(n2)
+    #
+    # return calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
+
+def direct_sum(A, B):
+    # A and B are complex matrices!
+    dsum = np.zeros(np.add(A.shape, B.shape), dtype=complex)
+    dsum[:A.shape[0], :A.shape[1]] = A
+    dsum[A.shape[0]:, A.shape[1]:] = B
+
+    return dsum
+
 
 def probability_approx(mu, cov, n, approx=2, hbar=2):
     """
@@ -98,6 +129,6 @@ def probability_approx(mu, cov, n, approx=2, hbar=2):
     beta = complex_to_real_displacements(mu, hbar=hbar)  # complex displacement vector
     gamma = beta.conj() - A @ beta  # gamma vector
     prob = loop_hafnian_approx(A, gamma, n, approx)  # find the hafnian (approximately)
-    # prob*=_prefactor(mu,cov,hbar) #multiply by prefactpor
-    # prob/= np.prod(scipy.special.factorial(n)) #divide by factoials of n
+    prob*=_prefactor(mu,cov,hbar) #multiply by prefactpor
+    prob/= np.prod(scipy.special.factorial(n)) #divide by factoials of n
     return prob.real
