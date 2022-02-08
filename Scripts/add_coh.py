@@ -34,7 +34,7 @@ logging.info(message)
 message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha)
 logging.info(message)
 
-is_this_test = False
+is_this_test = True
 file_name_header = r'..\Results\varying_coh_{}x{}_samples'.format(n_samples, n_repeat)
 if is_this_test:
     file_name_header += r'\test'
