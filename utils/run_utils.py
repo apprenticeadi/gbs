@@ -24,7 +24,7 @@ class CircuitUtils:
 
         eng = sf.Engine(backend='gaussian')
         # The engine cannot be reused between programs.
-        # Otherwise will automatically concatenate the next program onto the previoius one.
+        # Otherwise will automatically concatenate the next program onto the previous one.
         prog = sf.Program(M)
         with prog.context as q:
             for i in range(0, num_coh):
