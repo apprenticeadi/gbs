@@ -1,18 +1,17 @@
-####### THIS IS CURRENTLY NOT WORKING!!!
-
-
+import math
 import pandas as pd
 import numpy as np
 from scipy.stats import unitary_group
 import datetime
-from loop_hafnian_k_approx import loop_hafnian_approx
 import logging
 import os
 
+from _walrus_functions import complex_to_real_displacements, reduction, Amat, _prefactor
 from chain_rule import *
 from utils.log_utils import LogUtils
 from utils.run_utils import CircuitUtils
-
+from loop_hafnian_k_approx import loop_hafnian_approx, probability_approx
+from loop_hafnian import loop_hafnian
 
 def get_prob_Jake(B, gamma, m, det_pattern, cutoff, det_outcomes):
     assert np.array_equal(det_outcomes, np.arange(cutoff + 1))
@@ -58,7 +57,7 @@ date_stamp = datetime.datetime.now().strftime("%d-%m-%Y")
 logging.info('Testing how to add k-th order approx to chain rule method, date: {}'.format(date_stamp))
 
 # <<<<<<<<<<<< Parameters >>>>>>>>>>>>>>>>>
-M = 4
+M = 2
 r = 1.55
 alpha = 2
 num_coh = 0
@@ -99,6 +98,8 @@ heterodyne_alpha = mu_to_alpha(heterodyne_mu)
 
 gamma = pure_alpha.conj() + B @ (heterodyne_alpha - pure_alpha)
 
+overall_Jake_prob = 1
+
 iteration = 0
 for mode in range(M):
     m = mode + 1
@@ -131,3 +132,19 @@ for mode in range(M):
 
     det_outcome_choice = np.random.choice(det_outcomes, p=probs_Jake)
     det_pattern[mode] = det_outcome_choice
+    overall_Jake_prob = overall_Jake_prob * probs_Jake[det_outcome_choice]
+
+logging.info('Final det pattern = {}, with overall Jake prob = {}'.format(det_pattern, overall_Jake_prob))
+
+total_photons = np.sum(det_pattern)
+overall_k_prob = probability_approx(mu=mu, cov=cov, n=det_pattern, approx=2*total_photons)
+
+logging.info('k-th order approx gives prob = {} for k=2N'.format(overall_k_prob))
+
+logging.info('Are they equal= {}'.format(math.isclose(overall_k_prob, overall_Jake_prob)))
+
+lhafs = loop_hafnian_batch(A=B[:m, :m], D=gamma[:m], fixed_reps=det_pattern[:mode], N_cutoff=cutoff)
+
+lhaf_exact = loop_hafnian(A=B[:m, :m], D=gamma[:m], reps=det_pattern[:mode] )
+
+lhaf_approx = loop_hafnian_approx(A=B[:m, :m], gamma=gamma[:m], n=det_pattern[:mode])
