@@ -11,14 +11,14 @@ eng = sf.Engine(backend='gaussian')
 prog = sf.Program(M) # creates an M mode quantum program
 U = unitary_group.rvs(M) # generates random unitary group with dimension M
 
-r = 1
+r = 1.55
 eta = 1
 hbar = 2
 
 with prog.context as q:
     for i in range(M):
         ops.Sgate(r) | q[i] # Append S gate to each mode. S gate is phase space squeezing gate. r is the squeezing amount.
-        ops.LossChannel(eta) | q[i] # Append a loss channel to each mode. eta is transmissivity
+        # ops.LossChannel(eta) | q[i] # Append a loss channel to each mode. eta is transmissivity
     ops.Interferometer(U) | q # default is rectangular mesh, the Clements design
 
 state = eng.run(prog).state # I think this can be understood as the quantum state after computation. With a gaussian backend we get a gaussian state.
