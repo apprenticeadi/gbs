@@ -1,18 +1,18 @@
 ####### THIS IS CURRENTLY NOT WORKING!!!
 
 
-
 import pandas as pd
 import numpy as np
 from scipy.stats import unitary_group
 import datetime
-from displacement.GBS_displacement_approximation import probability_approx
+from loop_hafnian_k_approx import loop_hafnian_approx
 import logging
 import os
 
 from chain_rule import *
 from utils.log_utils import LogUtils
 from utils.run_utils import CircuitUtils
+
 
 def get_prob_Jake(B, gamma, m, det_pattern, cutoff, det_outcomes):
     assert np.array_equal(det_outcomes, np.arange(cutoff + 1))
@@ -26,7 +26,8 @@ def get_prob_Jake(B, gamma, m, det_pattern, cutoff, det_outcomes):
 
     return probs
 
-def get_prob_k_approx(mu, cov, m, det_pattern, cutoff, det_outcomes):
+
+def get_prob_k_approx(B, gamma, m, det_pattern, cutoff, det_outcomes):
     assert np.array_equal(det_outcomes, np.arange(cutoff + 1))
 
     mode = m - 1
@@ -37,15 +38,16 @@ def get_prob_k_approx(mu, cov, m, det_pattern, cutoff, det_outcomes):
     for det_outcome_i in det_outcomes:
         det_pattern_i[mode] = det_outcome_i
 
-        N = np.sum(det_pattern_i)
+        N = np.sum(det_pattern_i)  # total number of photons in output
 
-        probs[det_outcome_i] = probability_approx(mu=mu, cov=cov, n=det_pattern_i, approx=2*N)
+        lhaf = loop_hafnian_approx(A=B[:m, :m], gamma=gamma[:m], n=det_pattern_i[:mode + 1], approx=2 * N)
 
-        norm_probs = probs.sum()
-        probs /= norm_probs
+        probs[det_outcome_i] = (lhaf * np.conj(lhaf)).real / factorial(det_outcome_i)
+
+    norm_probs = probs.sum()
+    probs /= norm_probs
 
     return probs
-
 
 
 # <<<<<<<<<<<< Logging >>>>>>>>>>>>>>>>>
@@ -60,21 +62,20 @@ M = 4
 r = 1.55
 alpha = 2
 num_coh = 0
-cutoff=10
+cutoff = 10
 
 logging.info('M={}, r={}, alpha={}, num_coh={}, cutoff={}'.format(M, r, alpha, num_coh, cutoff))
 
-U = unitary_group.rvs(M) # generates random unitary group with dimension M
+U = unitary_group.rvs(M)  # generates random unitary group with dimension M
 logging.info('U={}'.format(U))
 
 mu, cov = CircuitUtils.hybrid_gaussian_circuit(M, num_coh, r, alpha, U)
 logging.info('mu={}, cov={}'.format(mu, cov))
 
-
-file_name = r'..\Results\test_chain_k_approx\M={}_num_coh={}_r={}_alpha={}_{}.csv'.format(M, num_coh, r, alpha, time_stamp)
+file_name = r'..\Results\test_chain_k_approx\M={}_num_coh={}_r={}_alpha={}_{}.csv'.format(M, num_coh, r, alpha,
+                                                                                          time_stamp)
 os.makedirs(os.path.dirname(file_name), exist_ok=True)
 results_df = pd.DataFrame(columns=['det_pattern', 'Jake_prob', 'k_prob', 'equal'])
-
 
 assert M == cov.shape[0] // 2
 
@@ -104,7 +105,8 @@ for mode in range(M):
     gamma -= heterodyne_alpha[mode] * B[:, mode]
 
     probs_Jake = get_prob_Jake(B, gamma, m, det_pattern, cutoff, det_outcomes)
-    probs_k_approx = get_prob_k_approx(mu, cov, m, det_pattern, cutoff, det_outcomes)
+
+    probs_k_approx = get_prob_k_approx(B, gamma, m, det_pattern, cutoff, det_outcomes)
 
     for det_outcome_i in det_outcomes:
         det_pattern_i = det_pattern
@@ -114,23 +116,18 @@ for mode in range(M):
         k_prob = probs_k_approx[det_outcome_i]
 
         results_df.loc[iteration] = {
-            'det_pattern': det_pattern_i,
+            'det_pattern': '{}'.format(det_pattern_i),
             'Jake_prob': Jake_prob,
             'k_prob': k_prob,
             'equal': Jake_prob == k_prob,
         }
         results_df.to_csv(file_name)
 
-        message = 'det_pattern={}, Jake_prob={}, k_prob={}, equal = {}'.format(det_pattern_i, Jake_prob, k_prob, Jake_prob==k_prob)
+        message = 'det_pattern={}, Jake_prob={}, k_prob={}, equal = {}'.format(det_pattern_i, Jake_prob, k_prob,
+                                                                               Jake_prob == k_prob)
         logging.info(message)
 
         iteration += 1
 
     det_outcome_choice = np.random.choice(det_outcomes, p=probs_Jake)
     det_pattern[mode] = det_outcome_choice
-
-
-
-
-
-
