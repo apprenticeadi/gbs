@@ -31,8 +31,8 @@ A = Amat(cov, hbar)  # find A matrix
 beta = complex_to_real_displacements(mu, hbar=hbar)  # complex displacement vector
 gamma = beta.conj() - A @ beta  # gamma vector
 
-n = [1] * M
-reps = n + n
+n = np.random.randint(4, size=M)
+reps = np.concatenate([n,n])
 
 lhaf_exact = loop_hafnian(A, gamma, reps)
 lhaf_approx = loop_hafnian_approx(A, gamma, n, approx = np.sum(reps))
