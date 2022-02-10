@@ -53,7 +53,8 @@ logging.info(message)
 
 for num_coh in range(1, M):
 
-    results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx', 'prob_error'])
+    results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
+                                       'prob_error', 'exact_time', 'k_time'])
     file_name_body = r'\num_coh={}_{}.csv'.format(num_coh, date_stamp)
     file_name = file_name_header + file_name_body
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
@@ -77,11 +78,15 @@ for num_coh in range(1, M):
 
     logging.info('A={}, gamma = {}'.format(A, gamma))
 
+    exact_start_time = time.time()
     lhaf_exact = loop_hafnian(A=A, D=gamma, reps=reps)
+    exact_end_time = time.time()
+    exact_time = exact_end_time - exact_start_time
+
     prob_exact = lhaf_exact * prob_prefactor
     prob_exact = prob_exact.real
 
-    logging.info('lhaf_exact = {}, prob_exact = {}'.format(lhaf_exact, prob_exact))
+    logging.info('lhaf_exact = {}, prob_exact = {}, exact_time = {}'.format(lhaf_exact, prob_exact, exact_time))
 
     lhaf_kisN = loop_hafnian_approx(A=A, gamma=gamma, n=n_photon, approx=2 * N)
     prob_kisN = lhaf_kisN * prob_prefactor
@@ -93,11 +98,17 @@ for num_coh in range(1, M):
 
     iteration = 0
     for k in range(k_cutoff):
+
+        start_time = time.time()
         lhaf_k_approx = loop_hafnian_approx(A=A, gamma=gamma, n=n_photon, approx=2 * k)
+        end_time = time.time()
+
         prob_k_approx = lhaf_k_approx * prob_prefactor
         prob_k_approx = prob_k_approx.real
 
-        logging.info('For k = {}, lhaf_k_approx={}, prob_k_approx = {}'.format(k, lhaf_k_approx, prob_k_approx))
+        logging.info('For k = {}, lhaf_k_approx={}, prob_k_approx = {}, time = {}'.format(k, lhaf_k_approx,
+                                                                                          prob_k_approx,
+                                                                                          end_time - start_time))
 
         results_df.loc[iteration] = {
             'k': k,
@@ -105,7 +116,9 @@ for num_coh in range(1, M):
             'prob_exact': prob_exact,
             'lhaf_k_approx': lhaf_k_approx,
             'prob_k_approx': prob_k_approx,
-            'prob_error': prob_exact - prob_k_approx
+            'prob_error': prob_exact - prob_k_approx,
+            'exact_time': exact_time,
+            'k_time': end_time - start_time,
         }
 
         results_df.to_csv(file_name)
