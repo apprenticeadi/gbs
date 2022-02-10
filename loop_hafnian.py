@@ -68,8 +68,8 @@ def loop_hafnian(A, D=None, reps=None,
                  rank=0, size=1,
                  glynn=True):
     """
-    calculate loop hafnian of NxN matrix, A
-    reps is an optional N length vector which tells us
+    calculate loop hafnian of 2Nx2N matrix, A
+    reps is an optional 2N length vector which tells us
     how many times each row/column is repeated
     """
     # A is the matrix without repeats, reps contains the number of repeats for

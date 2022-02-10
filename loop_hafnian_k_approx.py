@@ -1,6 +1,6 @@
 import numpy as np
 import scipy
-from loop_hafnian import _calc_loop_hafnian
+from loop_hafnian import _calc_loop_hafnian, loop_hafnian
 from _walrus_functions import complex_to_real_displacements, reduction, Amat, _prefactor
 import itertools
 
@@ -32,6 +32,9 @@ def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
     A_n = np.asarray(A_n, dtype=np.complex128)
     D_n = np.asarray(D_n, dtype=np.complex128)
 
+
+    # This line is very problematic. If we feed in A matrix, N is twice the number of photons and everything is fine.
+    # But if we feed in the B matrix, then N is the number of photons and everything that follows is wrong...
     N = len(D_n)  # Number of photons  # In fact twice the number of photons
 
     if approx % 2 == 1:  # if the appoximation order is odd, it does not improve on the even order below it
@@ -40,7 +43,7 @@ def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
         return np.prod(D_n)  # 0th order is just the product of D
     if approx >= N:
         # appox order >N is meaningless
-        return _calc_loop_hafnian(A_n, D_n, np.ones(N // 2, dtype=np.int64), glynn=glynn)  # loop_hafnian(A,D,glynn=glynn)
+        return loop_hafnian(A_n, D_n, glynn=glynn) # _calc_loop_hafnian(A_n, D_n, np.ones(N // 2, dtype=np.int64), glynn=glynn)
     else:
         H = 0
         for output in itertools.combinations(range(N), N - approx):
@@ -65,19 +68,25 @@ def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
             # add the product of D for the indices fixed in loops
             # times the loop hafnian of those that aren't
             # loop hafnian function could be replaced with something from thewalrus
-            H += np.prod(D_n[loops]) * _calc_loop_hafnian(As, Ds, np.ones(approx // 2, dtype=np.int64), glynn=glynn)
+            H += np.prod(D_n[loops]) * \
+                 loop_hafnian(As, Ds, glynn = glynn)
+                 #_calc_loop_hafnian(As, Ds, np.ones(approx // 2, dtype=np.int64), glynn=glynn)
         return H
 
 def loop_hafnian_approx(A, gamma, n, approx=2):
+    # Here n is the photon output, which is length M.
+    # If A is the full A matrix for mixed state, it is size 2M * 2M
+    # But if instead B is fed into the function for pure state, it is of size M * M.
+    # Let's use a dirty method here first.
 
-    # The main confusion here is, in k-approx script, no decomposition of A into B are made. This is not true in chain
-    # rule.  For now let's use a dirty method. Need to change this later!
+    assert A.shape[0] == 2 * len(n) or A.shape[0] == len(n)
+    assert len(gamma) == A.shape[0]
 
-    n2 = n + n
-    A_n = reduction(A, n2)  # A reduced according to photon numbers n  # i.e. repeat rows/col n_i times to make A_n
-    gamma_n = reduction(gamma, n2)  # gamma reduced according to photon numbers n
+    if A.shape[0] == 2 * len(n):
+        n = np.concatenate([n,n])
 
-    assert len(gamma_n) == np.sum(n2)
+    A_n = reduction(A, n)  # A reduced according to photon numbers n  # i.e. repeat rows/col n_i times to make A_n
+    gamma_n = reduction(gamma, n)  # gamma reduced according to photon numbers n
 
     return calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
 

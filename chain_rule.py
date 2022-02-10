@@ -152,3 +152,44 @@ def get_samples_click(mu, cov, cutoff=1, fanout=10, n_samples=10):
                     break 
 
         yield click_pattern[order_inv]
+
+# def get_samples_approx(mu, cov, cutoff=10, n_samples=10, approx=2):
+#     M = cov.shape[0] // 2
+#
+#     order = photon_means_order(mu, cov)
+#     order_inv = invert_permutation(order)
+#     oo = np.concatenate((order, order + M))
+#
+#     mu = mu[oo]
+#     cov = cov[np.ix_(oo, oo)]
+#
+#     T, sqrtW = decompose_cov(cov)
+#     chol_T_I = np.linalg.cholesky(T + np.eye(2 * M))
+#     B = Amat(T)[:M, :M]
+#     det_outcomes = np.arange(cutoff + 1)
+#
+#     for i in range(n_samples):
+#         det_pattern = np.zeros(M, dtype=int)
+#         pure_mu = mu + sqrtW @ np.random.normal(size=2 * M)
+#         pure_alpha = mu_to_alpha(pure_mu)
+#         heterodyne_mu = pure_mu + chol_T_I @ np.random.normal(size=2 * M)
+#         heterodyne_alpha = mu_to_alpha(heterodyne_mu)
+#
+#         gamma = pure_alpha.conj() + B @ (heterodyne_alpha - pure_alpha)
+#
+#
+#         for mode in range(M):
+#             m = mode + 1
+#             gamma -= heterodyne_alpha[mode] * B[:, mode]
+#
+#
+#
+#             lhafs = loop_hafnian_batch(B[:m, :m], gamma[:m], det_pattern[:mode], cutoff)
+#             probs = (lhafs * lhafs.conj()).real / factorial(det_outcomes)
+#             norm_probs = probs.sum()
+#             probs /= norm_probs
+#
+#             det_outcome_i = np.random.choice(det_outcomes, p=probs)
+#             det_pattern[mode] = det_outcome_i
+#
+#         yield det_pattern[order_inv]
