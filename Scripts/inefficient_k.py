@@ -71,7 +71,7 @@ for N in N_array:
 
     plt.figure(N)
     plt.plot(np.arange(N+1), exact_complexities[N], label = 'Exact')
-    plt.plot(np.arange(N+1), k_complexities[N], label= 'k-approx')
+    plt.plot(np.arange(N+1), k_complexities[N], 'x', label= 'k-approx')
     plt.legend()
     plt.xlabel('k')
     plt.ylabel('Complexity')
@@ -80,5 +80,5 @@ for N in N_array:
     plt.title('Complexity comparison for N = {}'.format(N))
     plt.savefig(file_name_head + r'\Complexity_comparison_for_N={}_{}.pdf'.format(N, date_stamp))
 
-
 plt.show()
+

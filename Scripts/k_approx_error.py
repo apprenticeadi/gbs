@@ -29,7 +29,7 @@ r = 1.55  # squeezing magnitude
 p = 0  # squeezing angle
 alpha = 2.25  # coherent state
 phi = 0  # coherent state phase
-k_cutoff = 7
+k_cutoff = 4
 hbar = 2
 
 n_photon = [1, 3, 2, 1, 3, 2, 2, 2]
@@ -51,7 +51,7 @@ U = unitary_group.rvs(M)  # generates random unitary group with dimension M
 message = 'U = {}'.format(U)
 logging.info(message)
 
-for num_coh in range(1, M):
+for num_coh in range(2, M):
 
     results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
                                        'prob_error', 'exact_time', 'k_time'])
