@@ -4,6 +4,7 @@ from loop_hafnian import _calc_loop_hafnian, loop_hafnian
 from _walrus_functions import complex_to_real_displacements, reduction, Amat, _prefactor
 import itertools
 
+# TODO: is calc_loop_hafnian_approx calculating just the k-th order or up to k-th order?
 
 def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
     """
