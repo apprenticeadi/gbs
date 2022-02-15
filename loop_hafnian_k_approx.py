@@ -1,3 +1,5 @@
+import logging
+import pandas as pd
 import numpy as np
 import scipy
 from loop_hafnian import _calc_loop_hafnian, loop_hafnian
@@ -5,16 +7,17 @@ from _walrus_functions import complex_to_real_displacements, reduction, Amat, _p
 import itertools
 
 # TODO: is calc_loop_hafnian_approx calculating just the k-th order or up to k-th order?
+# Only k-th order
 
 def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
     """
-    Finds an approximate form of the loop hafnian
+    Finds the k-th order term in the k-th order expansion of the loop hafnian
 
     Parameters
     ----------
-    A_n : matrix that goes into the loop hafnian
-    D_n : vector of loop weights (conventionally these go on diagonal of A, I prefer to keep separate)
-    approx : order of approximation
+    A_n : matrix that goes into the loop hafnian, shape 2N*2N, N=total photon number
+    D_n : vector of loop weights (conventionally these go on diagonal of A, I prefer to keep separate), shape 2N
+    approx : 2k, order of approximation, from 0 to 2N
             only keep terms which are at least this order in D,
             i.e. at least this many indices are involved in loops rather than pairs
             The default is 2.
@@ -36,30 +39,35 @@ def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
 
     # This line is very problematic. If we feed in A matrix, N is twice the number of photons and everything is fine.
     # But if we feed in the B matrix, then N is the number of photons and everything that follows is wrong...
-    N = len(D_n)  # Number of photons  # In fact twice the number of photons
+    N2 = len(D_n)  # Twice the number of photons
 
     if approx % 2 == 1:  # if the appoximation order is odd, it does not improve on the even order below it
         approx -= 1  # so might as well reduce it
     if approx == 0:
         return np.prod(D_n)  # 0th order is just the product of D
-    if approx >= N:
+    if approx > N2: # For now change to >N, so can check if approx=N gives correct answer
         # appox order >N is meaningless
         return loop_hafnian(A_n, D_n, glynn=glynn) # _calc_loop_hafnian(A_n, D_n, np.ones(N // 2, dtype=np.int64), glynn=glynn)
     else:
         H = 0
-        for output in itertools.combinations(range(N), N - approx):
+        for output in itertools.combinations(range(N2), N2 - approx):
             # takes all choices of (N-approx) indices to be fixed into loops
+            # This gives the indices of gamma product
+            # If approx=N2, output = ()
             loops = np.asarray(output, dtype=int)
 
             # make array that is 0 for every index fixed into a loop, 1 for others
-            reps = np.ones(N, dtype=int)
+            reps = np.ones(N2, dtype=int)
             reps[loops] = 0
 
             # make a temporary version of D
             # only copy the values that come after the last entry in 'loops'
             # this avoids some double counting
-            Dnew = np.zeros(N, dtype=np.complex128)
-            Dnew[loops[-1] + 1:] = D_n[loops[-1] + 1:]
+            # This block doesn't make sense...
+            # No D vector should be fed into the *hafnian* calculation, especially when the code is using a
+            # lhaf function to do this, D should be set to all zero.
+            Dnew = np.zeros(N2, dtype=np.complex128)
+            # Dnew[loops[-1] + 1:] = D_n[loops[-1] + 1:] # this line wouldn't work for approx=N2
 
             # take submatrices - only keep indices which aren't fixed into loops
             Ds = Dnew[reps == 1]
@@ -69,18 +77,32 @@ def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
             # add the product of D for the indices fixed in loops
             # times the loop hafnian of those that aren't
             # loop hafnian function could be replaced with something from thewalrus
-            H += np.prod(D_n[loops]) * \
-                 loop_hafnian(As, Ds, glynn = glynn)
+            # Ds should be all zero here, lhaf of a diagonally zero matrix is the hafnian of the matrix
+            haf_term = loop_hafnian(As, Ds, glynn = glynn)
+            gamma_prod = np.prod(D_n[loops])
+            H_term = gamma_prod * haf_term
+
+            logging.info('k={},output={},gamma_prod={},haf={}'.format(approx/2, output, gamma_prod, haf_term))
+
+            H += H_term
                  #_calc_loop_hafnian(As, Ds, np.ones(approx // 2, dtype=np.int64), glynn=glynn)
         return H
 
-def loop_hafnian_approx(A, gamma, n, approx=2):
-    # Here n is the photon output, which is length M.
-    # If A is the full A matrix for mixed state, it is size 2M * 2M
-    # But if instead B is fed into the function for pure state, it is of size M * M.
-    # Let's use a dirty method here first.
+def loop_hafnian_approx(A, gamma, n, k=1):
+    """
+    Calculates the loop hafnian *to* the k-th order approximation for a mixed state.
+    Cannot accept B matrix for pure state yet
+    Args:
+        A: A matrix, shape 2M * 2M, where M is number of modes
+        gamma: displacement vector, shape 2m
+        n: output photon pattern, length M, sum(n)=N
+        k: order of approximation, from 0 to N
 
-    assert A.shape[0] == 2 * len(n) or A.shape[0] == len(n)
+    Returns:
+        lhaf_approx, the k-th order approximation of the loop hafnian
+    """
+
+    assert A.shape[0] == 2 * len(n)
     assert len(gamma) == A.shape[0]
 
     if A.shape[0] == 2 * len(n):
@@ -89,25 +111,14 @@ def loop_hafnian_approx(A, gamma, n, approx=2):
     A_n = reduction(A, n)  # A reduced according to photon numbers n  # i.e. repeat rows/col n_i times to make A_n
     gamma_n = reduction(gamma, n)  # gamma reduced according to photon numbers n
 
-    return calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
+    lhaf_approx = 0
+    for k_iter in range(k+1):
+        approx = 2*k_iter
+        H = calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
+        lhaf_approx += H
 
-    # Above is my original method. I believe this would work if n is integer list of length N, A is 2N*2N.
-    # Below is a dirty version I tried to use, but failed more miserably...
+    return lhaf_approx
 
-    # assert len(gamma) == A.shape[0]
-    # assert A.shape[0] == len(n) or A.shape[0] == 2*len(n)
-    #
-    # if len(n) == A.shape[0]:
-    #     A = direct_sum(A, A)
-    #     gamma = np.concatenate([gamma, gamma])
-    #
-    # n2 = np.concatenate([n,n])
-    # A_n = reduction(A, n2)  # A reduced according to photon numbers n  # i.e. repeat rows/col n_i times to make A_n
-    # gamma_n = reduction(gamma, n2)  # gamma reduced according to photon numbers n
-    #
-    # assert len(gamma_n) == np.sum(n2)
-    #
-    # return calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
 
 def direct_sum(A, B):
     # A and B are complex matrices!
