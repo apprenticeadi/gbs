@@ -1,56 +1,27 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-M = 8
-N = 16
-num_coh_range = list(range(1, 8))
+M = 3
+N = 4
+r=1.55
+alpha=2.25
+k_end = 4
+num_coh_range = [1]
 
-file_name_header = r'../Results/k_approx_error/M={}_N={}'.format(M, N)
+file_name_header = r'../Results/k_approx_error/M={}_N={}_r={}_alpha={}'.format(M, N,r,alpha)
 
-date_1 = '10-02-2022'
-date_2 = '11-02-2022'
+date = '15-02-2022'
 
 results_dict = {}
 
 for num_coh in num_coh_range:
 
-    file_name_body = r'/num_coh={}_'.format(num_coh)
-
-    try:
-        results_df = pd.read_csv(file_name_header
-                                 + file_name_body
-                                 + '{}.csv'.format(date_1))
-    except FileNotFoundError:
-        results_df = pd.read_csv(file_name_header
-                                 + file_name_body
-                                 + '{}.csv'.format(date_2))
-
-    try:
-        results_df_2 = pd.read_csv(file_name_header
-                                   + file_name_body
-                                   + r'k=4-5_'
-                                   + '{}.csv'.format(date_2))
-
-        results_df = pd.concat([results_df, results_df_2])
-    except FileNotFoundError:
-        pass
+    file_name_body = r'/num_coh={}_k=0-{}_{}.csv'.format(num_coh, k_end, date)
+    results_df = pd.read_csv(file_name_header + file_name_body)
 
     results_dict[num_coh] = results_df
 
 plot_name_header = r'../Plots/k_approx_error'
-
-# # Plot run time for 1 coherent state
-# time_1_coh = results_dict[1]['k_time']
-# k_array_1_coh = results_dict[1]['k']
-
-# plt.figure(0)
-# plt.plot(k_array_1_coh, time_1_coh, 'x')
-# plt.xlabel('k')
-# plt.ylabel('runtime (s)')
-# plt.title('k-th order approximation run time for num_coh=1')
-# plt.yscale('log')
-#
-# plt.savefig(plot_name_header + r'/Runtime_M={}_N={}_num_coh=1'.format(M, N))
 
 # Plot probability errors
 plt.figure(1)
@@ -64,10 +35,10 @@ for num_coh in num_coh_range:
 plt.xlabel('k')
 plt.ylabel('exact_prob - k_prob')
 plt.yscale('log')
-plt.title('Probability error for k-th order approximation')
+plt.title('Prob error for M={},N={},r={},alpha={}'.format(M,N,r,alpha))
 plt.legend()
 
-plt.savefig(plot_name_header + r'/Prob_error_M={}_N={}.png'.format(M, N))
+plt.savefig(plot_name_header + r'/Prob_err_M={}_N={}_r={}_alpha={}.png'.format(M, N, r, alpha))
 
 
 # Plot relative probability errors
@@ -84,10 +55,10 @@ for num_coh in num_coh_range:
 
 plt.xlabel('k')
 plt.ylabel('(exact_prob - k_prob)/ exact_prob')
-plt.title('Relative probability error for k-th order approximation')
+plt.title('Rel prob error for M={},N={},r={},alpha={}'.format(M,N,r,alpha))
 plt.legend()
 
-plt.savefig(plot_name_header + r'/Rel_prob_error_M={}_N={}.png'.format(M, N))
+plt.savefig(plot_name_header + r'/Rel_prob_err_M={}_N={}_r={}_alpha={}.png'.format(M, N,r,alpha))
 
 
 plt.show()
