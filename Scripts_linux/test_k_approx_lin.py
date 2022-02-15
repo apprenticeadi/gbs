@@ -31,7 +31,6 @@ alpha = 2.25  # coherent state
 phi = 0  # coherent state phase
 k_end = 4  # k takes values from 0 to N, when calculating for higher k,  lower k results will be stored as well
 hbar = 2
-isTest = True
 
 n_photon = [1, 1, 2]
 reps = n_photon + n_photon
@@ -42,15 +41,10 @@ message = 'Trying to find the error between k-approx and exact hafnian calculati
           'k is 0 to {}, hbar = {}'.format(M, n_photon, N, k_end, hbar)
 logging.info(message)
 
-logging.info('Including the line Dnew[loops[-1] + 1:] = D_n[loops[-1] + 1:]')
-
 message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha)
 logging.info(message)
 
-if isTest:
-    file_name_header = r'../Results/k_approx_error/test/M={}_N={}_r={}_alpha={}'.format(M, N, r, alpha)
-else:
-    file_name_header = r'../Results/k_approx_error/M={}_N={}_r={}_alpha={}'.format(M, N, r, alpha)
+file_name_header = r'../Results/k_approx_error/M={}_N={}_r={}_alpha={}'.format(M, N, r, alpha)
 
 # <<<<<<<<<<<< Generate unitary group >>>>>>>>>>>>>>>>>
 # U = unitary_group.rvs(M)
@@ -69,11 +63,8 @@ for num_coh in [1]:  # range(2, M):
     # <<<<<<<<<<<< Result file >>>>>>>>>>>>>>>>>
     results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
                                        'prob_error', 'exact_time', 'k_time'])
-    if isTest:
-        file_name_body = r'/num_coh={}_k=0-{}_{}.csv'.format(num_coh, k_end, time_stamp)
-    else:
-        file_name_body = r'/num_coh={}_k=0-{}_{}.csv'.format(num_coh, k_end, date_stamp)
-
+    file_name_body = r'/num_coh={}_k=0-{}_{}.csv'.format(num_coh, k_end,
+                                                         date_stamp)
     file_name = file_name_header + file_name_body
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
 
