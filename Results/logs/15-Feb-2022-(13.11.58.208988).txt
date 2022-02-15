@@ -1,0 +1,5 @@
+INFO 2022-02-15 13:11:59,805 Trying to find the error between k-approx and exact hafnian calculation. Run for 3 modes, test output pattern is [1, 1, 2], total output photon numbers is 4, k is 0 to 4, hbar = 2
+INFO 2022-02-15 13:11:59,805 Squeezing r = 0.3, coherent state alpha = 1.41
+INFO 2022-02-15 13:11:59,806 U = [[(-0.34860999+0.32471167j), (-0.07813944+0.1676999j), (-0.85170116-0.11579945j)], [(-0.19282945+0.09087308j), (-0.92546958-0.12856466j), (0.1392731+0.24927709j)], [(-0.8323462-0.18652639j), (0.2648092+0.15041356j), (0.22615505+0.35848773j)]]
+INFO 2022-02-15 13:11:59,807 
+INFO 2022-02-15 13:11:59,807 Number of coherent states = 1
