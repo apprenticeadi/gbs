@@ -67,7 +67,10 @@ def calc_loop_hafnian_approx(A_n, D_n, approx=2, glynn=False):
             # No D vector should be fed into the *hafnian* calculation, especially when the code is using a
             # lhaf function to do this, D should be set to all zero.
             Dnew = np.zeros(N2, dtype=np.complex128)
-            # Dnew[loops[-1] + 1:] = D_n[loops[-1] + 1:] # this line wouldn't work for approx=N2
+            if len(loops) == 0:
+                pass
+            else:
+                Dnew[loops[-1] + 1:] = D_n[loops[-1] + 1:] # this line wouldn't work for approx=N2
 
             # take submatrices - only keep indices which aren't fixed into loops
             Ds = Dnew[reps == 1]
