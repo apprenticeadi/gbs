@@ -17,7 +17,7 @@ import strawberryfields.ops as ops
 
 from utils.run_utils import CircuitUtils
 from _walrus_functions import complex_to_real_displacements, reduction, Amat, _prefactor
-from loop_hafnian_k_approx import loop_hafnian_approx, calc_loop_hafnian_approx
+from loop_hafnian_k_approx import loop_hafnian_approx, calc_loop_hafnian_approx, calc_loop_hafnian_approx_batch
 from loop_hafnian import loop_hafnian
 
 date_stamp = datetime.datetime.now().strftime("%d-%m-%Y")
@@ -31,8 +31,9 @@ alpha = 2.25  # coherent state
 phi = 0  # coherent state phase
 k_end = 4  # k takes values from 0 to N, when calculating for higher k,  lower k results will be stored as well
 hbar = 2
+batch = True
 
-n_photon = [1, 1, 2]
+n_photon = [1,1,2]
 reps = n_photon + n_photon
 N = sum(n_photon)
 
@@ -40,6 +41,8 @@ message = 'Trying to find the error between k-approx and exact hafnian calculati
           'Run for {} modes, test output pattern is {}, total output photon numbers is {}, ' \
           'k is 0 to {}, hbar = {}'.format(M, n_photon, N, k_end, hbar)
 logging.info(message)
+
+logging.info('Batch is {}'.format(batch))
 
 message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha)
 logging.info(message)
@@ -63,7 +66,7 @@ for num_coh in [1]:  # range(2, M):
     # <<<<<<<<<<<< Result file >>>>>>>>>>>>>>>>>
     results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
                                        'prob_error', 'exact_time', 'k_time'])
-    file_name_body = r'/num_coh={}_k=0-{}_{}.csv'.format(num_coh, k_end,
+    file_name_body = r'/num_coh={}_k=0-{}_batch{}_{}.csv'.format(num_coh, k_end, batch,
                                                          date_stamp)
     file_name = file_name_header + file_name_body
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
@@ -113,18 +116,25 @@ for num_coh in [1]:  # range(2, M):
     for k_iter in range(k_end + 1):
         approx = 2 * k_iter
 
-        start_time = time.time()
-        H = calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
-        end_time = time.time()
-        approx_time += end_time - start_time
+        if batch:
+            start_time = time.time()
+            lhaf_approx = calc_loop_hafnian_approx_batch(A_n, gamma_n, approx=approx)
+            end_time = time.time()
+            approx_time = end_time - start_time
+            prob_approx = lhaf_approx * prob_prefactor
+            prob_approx = prob_approx.real
+        else:
+            start_time = time.time()
+            H = calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
+            end_time = time.time()
+            approx_time += end_time - start_time
 
-        logging.info('k={} term gives H = {}'.format(k_iter, H))
-        logging.info('')
+            logging.info('k={} term gives H = {}'.format(k_iter, H))
+            logging.info('')
 
-        lhaf_approx += H
-
-        prob_approx = lhaf_approx * prob_prefactor
-        prob_approx = prob_approx.real
+            lhaf_approx += H
+            prob_approx = lhaf_approx * prob_prefactor
+            prob_approx = prob_approx.real
 
         results_df.loc[k_iter] = {
             'k': k_iter,
