@@ -25,9 +25,9 @@ time_stamp = datetime.datetime.now().strftime("%d-%m-%Y(%H-%M-%S.%f)")
 
 # <<<<<<<<<<<< Parameters >>>>>>>>>>>>>>>>>
 M = 3  # M must be integer, not numpy.int32, otherwise will cause problems with strawberry fields
-r = 1.55  # squeezing magnitude
+r = 0.3  # squeezing magnitude
 p = 0  # squeezing angle
-alpha = 2.25  # coherent state
+alpha_list = [0.01, 0.1, 0.3, 0.5, 1, 1.5, 1.8, 2]  # coherent state
 phi = 0  # coherent state phase
 k_end = 4  # k takes values from 0 to N, when calculating for higher k,  lower k results will be stored as well
 hbar = 2
@@ -44,10 +44,10 @@ logging.info(message)
 
 logging.info('Batch is {}'.format(batch))
 
-message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha)
+message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha_list)
 logging.info(message)
 
-file_name_header = r'../Results/k_approx_error/M={}_N={}_r={}_alpha={}'.format(M, N, r, alpha)
+
 
 # <<<<<<<<<<<< Generate unitary group >>>>>>>>>>>>>>>>>
 # U = unitary_group.rvs(M)
@@ -61,89 +61,96 @@ U = np.asarray(
 message = 'U = {}'.format(U)
 logging.info(message)
 
-for num_coh in [1]:  # range(2, M):
+for alpha in alpha_list:
 
-    # <<<<<<<<<<<< Result file >>>>>>>>>>>>>>>>>
-    results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
-                                       'prob_error', 'exact_time', 'k_time'])
-    file_name_body = r'/num_coh={}_k=0-{}_batch{}_{}.csv'.format(num_coh, k_end, batch,
-                                                         date_stamp)
-    file_name = file_name_header + file_name_body
-    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    file_name_header = r'../Results/k_approx_error/M={}_N={}_r={}_alpha={}'.format(M, N, r, alpha)
 
-    message = 'Number of coherent states = {}'.format(num_coh)
     logging.info('')
-    logging.info(message)
+    logging.info('alpha={}'.format(alpha))
 
-    # <<<<<<<<<<<< Generate A matrix and gamma vector >>>>>>>>>>>>>>>>>
-    mu, cov = CircuitUtils.hybrid_gaussian_circuit(M=M, num_coh=num_coh, r=r, alpha=alpha, U=U, p=p, phi=phi)
 
-    message = 'mu = {}'.format(mu)
-    logging.info(message)
-    message = 'cov = {}'.format(cov)
-    logging.info(message)
+    for num_coh in [1]:  # range(2, M):
 
-    prob_prefactor = _prefactor(mu, cov, hbar) / np.prod(scipy.special.factorial(n_photon))
+        # <<<<<<<<<<<< Result file >>>>>>>>>>>>>>>>>
+        results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
+                                           'prob_error', 'exact_time', 'k_time'])
+        file_name_body = r'/num_coh={}_k=0-{}_{}.csv'.format(num_coh, k_end, time_stamp)
+        file_name = file_name_header + file_name_body
+        os.makedirs(os.path.dirname(file_name), exist_ok=True)
 
-    A = Amat(cov, hbar)  # find A matrix
-    beta = complex_to_real_displacements(mu, hbar=hbar)  # complex displacement vector
-    gamma = beta.conj() - A @ beta  # gamma vector
+        message = 'Number of coherent states = {}'.format(num_coh)
+        logging.info('')
+        logging.info(message)
 
-    logging.info('A={}, gamma = {}'.format(A, gamma))
+        # <<<<<<<<<<<< Generate A matrix and gamma vector >>>>>>>>>>>>>>>>>
+        mu, cov = CircuitUtils.hybrid_gaussian_circuit(M=M, num_coh=num_coh, r=r, alpha=alpha, U=U, p=p, phi=phi)
 
-    # <<<<<<<<<<<< Calculate exact lhaf and prob >>>>>>>>>>>>>>>>>
-    exact_start_time = time.time()
-    lhaf_exact = loop_hafnian(A=A, D=gamma, reps=reps)
-    exact_end_time = time.time()
-    exact_time = exact_end_time - exact_start_time
+        message = 'mu = {}'.format(mu)
+        logging.info(message)
+        message = 'cov = {}'.format(cov)
+        logging.info(message)
 
-    prob_exact = lhaf_exact * prob_prefactor
-    prob_exact = prob_exact.real
+        prob_prefactor = _prefactor(mu, cov, hbar) / np.prod(scipy.special.factorial(n_photon))
 
-    logging.info('lhaf_exact = {}, prob_exact = {}, exact_time = {}'.format(lhaf_exact, prob_exact, exact_time))
+        A = Amat(cov, hbar)  # find A matrix
+        beta = complex_to_real_displacements(mu, hbar=hbar)  # complex displacement vector
+        gamma = beta.conj() - A @ beta  # gamma vector
 
-    # <<<<<<<<<<<< Run loop_hafnian_approx, but save intermediate k results >>>>>>>>>>>>>>>>>
-    assert A.shape[0] == 2 * len(n_photon)
-    assert len(gamma) == A.shape[0]
+        logging.info('A={}, gamma = {}'.format(A, gamma))
 
-    reps = np.concatenate([n_photon, n_photon])
+        # <<<<<<<<<<<< Calculate exact lhaf and prob >>>>>>>>>>>>>>>>>
+        exact_start_time = time.time()
+        lhaf_exact = loop_hafnian(A=A, D=gamma, reps=reps)
+        exact_end_time = time.time()
+        exact_time = exact_end_time - exact_start_time
 
-    A_n = reduction(A, reps)
-    gamma_n = reduction(gamma, reps)
+        prob_exact = lhaf_exact * prob_prefactor
+        prob_exact = prob_exact.real
 
-    approx_time = 0
-    lhaf_approx = 0
-    for k_iter in range(k_end + 1):
-        approx = 2 * k_iter
+        logging.info('lhaf_exact = {}, prob_exact = {}, exact_time = {}'.format(lhaf_exact, prob_exact, exact_time))
 
-        if batch:
-            start_time = time.time()
-            lhaf_approx = calc_loop_hafnian_approx_batch(A_n, gamma_n, approx=approx)
-            end_time = time.time()
-            approx_time = end_time - start_time
-            prob_approx = lhaf_approx * prob_prefactor
-            prob_approx = prob_approx.real
-        else:
-            start_time = time.time()
-            H = calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
-            end_time = time.time()
-            approx_time += end_time - start_time
+        # <<<<<<<<<<<< Run loop_hafnian_approx, but save intermediate k results >>>>>>>>>>>>>>>>>
+        assert A.shape[0] == 2 * len(n_photon)
+        assert len(gamma) == A.shape[0]
 
-            logging.info('k={} term gives H = {}'.format(k_iter, H))
-            logging.info('')
+        reps = np.concatenate([n_photon, n_photon])
 
-            lhaf_approx += H
-            prob_approx = lhaf_approx * prob_prefactor
-            prob_approx = prob_approx.real
+        A_n = reduction(A, reps)
+        gamma_n = reduction(gamma, reps)
 
-        results_df.loc[k_iter] = {
-            'k': k_iter,
-            'lhaf_exact': lhaf_exact,
-            'prob_exact': prob_exact,
-            'lhaf_k_approx': lhaf_approx,
-            'prob_k_approx': prob_approx,
-            'prob_error': prob_exact - prob_approx,
-            'exact_time': exact_time,
-            'k_time': approx_time,
-        }
-        results_df.to_csv(file_name)
+        approx_time = 0
+        lhaf_approx = 0
+        for k_iter in range(k_end + 1):
+            approx = 2 * k_iter
+
+            if batch:
+                start_time = time.time()
+                lhaf_approx = calc_loop_hafnian_approx_batch(A_n, gamma_n, approx=approx)
+                end_time = time.time()
+                approx_time = end_time - start_time
+                prob_approx = lhaf_approx * prob_prefactor
+                prob_approx = prob_approx.real
+            else:
+                start_time = time.time()
+                H = calc_loop_hafnian_approx(A_n, gamma_n, approx=approx)
+                end_time = time.time()
+                approx_time += end_time - start_time
+
+                logging.info('k={} term gives H = {}'.format(k_iter, H))
+                logging.info('')
+
+                lhaf_approx += H
+                prob_approx = lhaf_approx * prob_prefactor
+                prob_approx = prob_approx.real
+
+            results_df.loc[k_iter] = {
+                'k': k_iter,
+                'lhaf_exact': lhaf_exact,
+                'prob_exact': prob_exact,
+                'lhaf_k_approx': lhaf_approx,
+                'prob_k_approx': prob_approx,
+                'prob_error': prob_exact - prob_approx,
+                'exact_time': exact_time,
+                'k_time': approx_time,
+            }
+            results_df.to_csv(file_name)
