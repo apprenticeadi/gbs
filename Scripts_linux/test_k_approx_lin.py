@@ -11,11 +11,13 @@ import pandas as pd
 import os
 import scipy
 from scipy.stats import unitary_group
+from itertools import combinations_with_replacement
 
 import strawberryfields as sf
 import strawberryfields.ops as ops
 
 from utils.run_utils import CircuitUtils
+from utils.test_utils import TestUtils
 from _walrus_functions import complex_to_real_displacements, reduction, Amat, _prefactor
 from loop_hafnian_k_approx import loop_hafnian_approx, calc_loop_hafnian_approx, calc_loop_hafnian_approx_batch
 from loop_hafnian import loop_hafnian
@@ -29,25 +31,26 @@ r = 0.3  # squeezing magnitude
 p = 0  # squeezing angle
 alpha_list = [0.01, 0.1, 0.3, 0.5, 1, 1.5, 1.8, 2]  # coherent state
 phi = 0  # coherent state phase
-k_end = 4  # k takes values from 0 to N, when calculating for higher k,  lower k results will be stored as well
+k_end_at_N = True  # k takes values from 0 to N, when calculating for higher k,  lower k results will be stored as well
+k_end_manual = 4 # Won't be used if k_end_at_N is True
+num_coh= 1
 hbar = 2
-batch = True
+batch = False
 
-n_photon = [1,1,2]
-reps = n_photon + n_photon
-N = sum(n_photon)
+N_sum_max = 4
+N_cutoff = 2  # Each output mode at most N_cutoff photons
+n_list = TestUtils.all_possible_n(N_cutoff=N_cutoff, N_sum_max=N_sum_max, M=M)
 
 message = 'Trying to find the error between k-approx and exact hafnian calculation. ' \
-          'Run for {} modes, test output pattern is {}, total output photon numbers is {}, ' \
-          'k is 0 to {}, hbar = {}'.format(M, n_photon, N, k_end, hbar)
+          'Run for {} modes, vary test output pattern where at most {} total photons and ' \
+          'each output mode at most {} photons. ' \
+          'hbar = {}'.format(M, N_sum_max, N_cutoff, hbar)
 logging.info(message)
 
 logging.info('Batch is {}'.format(batch))
 
 message = 'Squeezing r = {}, coherent state alpha = {}'.format(r, alpha_list)
 logging.info(message)
-
-
 
 # <<<<<<<<<<<< Generate unitary group >>>>>>>>>>>>>>>>>
 # U = unitary_group.rvs(M)
@@ -63,24 +66,29 @@ logging.info(message)
 
 for alpha in alpha_list:
 
-    file_name_header = r'../Results/k_approx_error/M={}_N={}_r={}_alpha={}'.format(M, N, r, alpha)
+    file_name_header = r'../Results/{}_mode/r={}_alpha={}_num_coh={}' \
+        .format(M, r, alpha, num_coh)
 
     logging.info('')
     logging.info('alpha={}'.format(alpha))
+    logging.info('num_coh={}'.format(num_coh))
 
+    for n_photon in n_list:
+        logging.info('n_photon={}'.format(n_photon))
 
-    for num_coh in [1]:  # range(2, M):
+        N = sum(n_photon)
+        if k_end_at_N:
+            k_end=N
+        else:
+            k_end=k_end_manual
+        reps = n_photon + n_photon
 
         # <<<<<<<<<<<< Result file >>>>>>>>>>>>>>>>>
         results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
                                            'prob_error', 'exact_time', 'k_time'])
-        file_name_body = r'/num_coh={}_k=0-{}_{}.csv'.format(num_coh, k_end, time_stamp)
+        file_name_body = r'/N={}/n={}_k=0-{}_{}.csv'.format(N, n_photon, k_end, time_stamp)
         file_name = file_name_header + file_name_body
         os.makedirs(os.path.dirname(file_name), exist_ok=True)
-
-        message = 'Number of coherent states = {}'.format(num_coh)
-        logging.info('')
-        logging.info(message)
 
         # <<<<<<<<<<<< Generate A matrix and gamma vector >>>>>>>>>>>>>>>>>
         mu, cov = CircuitUtils.hybrid_gaussian_circuit(M=M, num_coh=num_coh, r=r, alpha=alpha, U=U, p=p, phi=phi)
