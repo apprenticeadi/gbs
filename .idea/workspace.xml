@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="cd2bef78-7ac5-4448-b630-2c4e7d843ad8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Scripts_linux/test_k_approx_lin.py" beforeDir="false" afterPath="$PROJECT_DIR$/Scripts_linux/test_k_approx_lin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/test_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/test_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plotting_scripts/Plot_all_possible_n_lin.py" beforeDir="false" afterPath="$PROJECT_DIR$/Plotting_scripts/Plot_all_possible_n_lin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +38,30 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
   </component>
-  <component name="RunManager" selected="Python.test_k_approx_lin">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Plotting_scripts/" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.Plot_all_possible_n_lin">
+    <configuration name="Plot_all_possible_n_lin" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="gbs" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Plotting_scripts" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Plotting_scripts/Plot_all_possible_n_lin.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="Plot_k_aprox_error_lin" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="gbs" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -49,7 +71,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Scripts_linux/Plot_k_aprox_error_lin.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Plotting_scripts/Plot_k_aprox_error_lin.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -70,7 +92,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Scripts_linux/Plot_test_batch.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Plotting_scripts/Plot_test_batch.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -120,6 +142,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.Plot_all_possible_n_lin" />
         <item itemvalue="Python.test_utils" />
         <item itemvalue="Python.Plot_k_aprox_error_lin" />
         <item itemvalue="Python.Plot_test_batch" />
