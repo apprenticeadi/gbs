@@ -86,7 +86,8 @@ for alpha in alpha_list:
         # <<<<<<<<<<<< Result file >>>>>>>>>>>>>>>>>
         results_df = pd.DataFrame(columns=['k', 'lhaf_exact', 'prob_exact', 'lhaf_k_approx', 'prob_k_approx',
                                            'prob_error', 'exact_time', 'k_time'])
-        file_name_body = r'/N={}/n={}_k=0-{}_{}.csv'.format(N, n_photon, k_end, time_stamp)
+        n_photon_str = ''.join(str(e) for e in n_photon)
+        file_name_body = r'/N={}/n={}_k=0-{}_{}.csv'.format(N, n_photon_str, k_end, time_stamp)
         file_name = file_name_header + file_name_body
         os.makedirs(os.path.dirname(file_name), exist_ok=True)
 
